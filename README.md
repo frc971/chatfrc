@@ -2,7 +2,7 @@
 
 ## Introduction
 
-ChatFRC is a chatbot built on GPT-3.5, designed to be a helpful resource for FIRST Robotics Competition (FRC) teams. The chatbot has been designed to support younger, less experienced teams. Utilizing RAG, the chatbot should be able to accurately answer queries across a range of FRC topics including software, mechanical, electrical, awards, outreach, strategy, and scouting. The chatbot is still in the process of development, the goal is to have a version ready for launch by early January 2024..
+ChatFRC is a chatbot built on GPT-3.5, designed to be a helpful resource for FIRST Robotics Competition (FRC) teams. The chatbot has been designed to support younger, less experienced teams. Utilizing RAG, the chatbot should be able to accurately answer queries across a range of FRC topics including software, mechanical, electrical, awards, outreach, strategy, and scouting. The chatbot is still in the process of development, the goal is to have a version ready for launch by early January 2024.
 
 ## Development Quick Start
 
