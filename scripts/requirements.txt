@@ -1,0 +1,10 @@
+openai
+numpy
+tiktoken
+pypdf
+langchain
+python-dotenv
+unstructured
+unstructured[pdf]
+unstructured[rst]
+qdrant-client

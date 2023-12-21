@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  website:
+    container_name: chatfrc
+    image: chatfrc
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: 'node'
+    environment:
+      - NODE_ENV=production
+      - TZ=US/Pacific
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+
+  chatfrc-qdrant:
+    image: 'qdrant/qdrant'
+    container_name: 'chatfrc-qdrant'
+    # This works for now but in the future we will need a script that will
+    # fill a new collection with existing embeds to avoid using local storage.
+    volumes:
+      - ./scripts/qdrant:/qdrant/storage
+    ports:
+      - 6333:6333
+      - 6334:6334
