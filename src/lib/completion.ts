@@ -42,29 +42,30 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
-
 		this.qdrant_client = new QdrantClient({
-			url: import.meta.env.VITE_QDRANT_URL ?? 'http://localhost:6333'
+			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
 		});
 
 		this.qdrant_collection = qdrant_collection;
 	}
 
 	/*
-        when populating QDrant with python the content gets encoded in page_content,
-        but the javascript library excpects pageContent, so we need to convert them.
+        We need to pass with_vector to qdrant to get our response
     */
 	private async qdrant_similarity_search(query: string, k: number): Promise<Document[]> {
 		const query_embedding = await this.embeddings_model.embedQuery(query);
 		const qdrant_results = await this.qdrant_client.search(this.qdrant_collection, {
 			vector: query_embedding,
-			limit: k
+			limit: k,
+			with_vector: true
 		});
+
+		console.log(qdrant_results);
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return qdrant_results.map((result: any) => {
 			return new Document({
-				pageContent: result.payload.page_content,
+				pageContent: result.payload.pageContent,
 				metadata: result.payload.metadata
 			});
 		});
