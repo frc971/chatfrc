@@ -1,4 +1,4 @@
-name: Lint
+name: Build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  Lint:
+  Build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,4 +18,4 @@ jobs:
         with:
           version: 8
 
-      - run: pnpm i && pnpm run lint
+      - run: pnpm i && pnpm run build

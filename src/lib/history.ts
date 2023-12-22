@@ -7,5 +7,3 @@ export type ChatHistory = {
 	content: string;
 	type: ChatHistoryType;
 };
-
-export default ChatHistory;
