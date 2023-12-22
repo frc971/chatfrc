@@ -7,16 +7,15 @@
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PaperAirplane, Trash } from '@steeze-ui/heroicons';
 
-	import { writable } from 'svelte/store';
 	import type { ChatHistory } from '$lib/history';
 
-	export const historyStore = writable<ChatHistory[]>([]);
+	let history: ChatHistory[] = [];
 
 	let userInput = '';
 
 	async function send() {
-		$historyStore = [
-			...$historyStore,
+		history = [
+			...history,
 			{
 				type: ChatHistoryType.Human,
 				content: userInput
@@ -28,7 +27,7 @@
 		const response = await fetch('api/completion', {
 			method: 'POST',
 			body: JSON.stringify({
-				chatHistory: $historyStore
+				chatHistory: history
 			}),
 			headers: {
 				'content-type': 'application/json'
@@ -37,8 +36,8 @@
 
 		const stream = response.body;
 
-		$historyStore = [
-			...$historyStore,
+		history = [
+			...history,
 			{
 				type: ChatHistoryType.AI,
 				content: ''
@@ -49,11 +48,13 @@
 
 		for await (const chunk of streamAsyncIterator(stream!)) {
 			console.log(decoder.decode(chunk));
-			$historyStore[$historyStore.length - 1].content += decoder.decode(chunk);
+			history[history.length - 1].content += decoder.decode(chunk);
 		}
 	}
 
-	const reset_chat = async () => historyStore.set([]);
+	const reset_chat = async () => {
+		history = [];
+	};
 </script>
 
 <div
@@ -79,7 +80,7 @@
 	</form>
 
 	<div class="w-full overflow-y-auto">
-		{#each $historyStore as { type, content }}
+		{#each history as { type, content }}
 			<Message {type} {content} />
 		{/each}
 	</div>
