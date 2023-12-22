@@ -3,17 +3,26 @@
 
 	import { ChatHistoryType } from '$lib/history';
 	import { streamAsyncIterator } from '$lib/iterable_stream';
+	import type { ChatHistory } from '$lib/history';
+	import { CompletionState } from '$lib/state';
 
 	import { Icon } from '@steeze-ui/svelte-icon';
 	import { PaperAirplane, Trash } from '@steeze-ui/heroicons';
 
-	import type { ChatHistory } from '$lib/history';
+	import { writable } from 'svelte/store';
+	import { setContext } from 'svelte';
 
 	let history: ChatHistory[] = [];
 
 	let userInput = '';
 
+	let completionState = writable<CompletionState>(CompletionState.Completed);
+
+	setContext('completionState', completionState);
+
 	async function send() {
+		completionState.set(CompletionState.Loading);
+
 		history = [
 			...history,
 			{
@@ -50,6 +59,8 @@
 			console.log(decoder.decode(chunk));
 			history[history.length - 1].content += decoder.decode(chunk);
 		}
+
+		completionState.set(CompletionState.Completed);
 	}
 
 	const reset_chat = async () => {
