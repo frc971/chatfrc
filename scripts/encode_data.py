@@ -65,7 +65,6 @@ class CustomDataLoader:
 
 
         documents = self.text_splitter.split_documents(loader.load())
-        print(documents)
         vector_responses = self.embeddings_model.embed_documents(
             list(map(lambda document: document.page_content, documents))
         )
