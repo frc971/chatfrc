@@ -93,7 +93,7 @@ class CustomDataLoader:
                 name, extension = os.path.splitext(full_path) 
 
                 match extension:
-                    case ".pdf" | ".rst":
+                    case ".pdf" | ".rst" | ".sh" | ".conf" | ".md":
                         pass
                     case _:
                         # Links is a special case, its where we load arbitrary html
