@@ -4,7 +4,7 @@ from openai import OpenAI
 
 def main():
     client = QdrantClient("0.0.0.0", port=6333)
-    query = "How should I contribute to the FRC team?"  
+    query = ""  
     openai_client = OpenAI()
     embedded_query = openai_client.embeddings.create(input=[query], model="text-embedding-ada-002")
 
