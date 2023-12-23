@@ -65,6 +65,7 @@ class CustomDataLoader:
 
 
         documents = self.text_splitter.split_documents(loader.load())
+        print(documents)
         vector_responses = self.embeddings_model.embed_documents(
             list(map(lambda document: document.page_content, documents))
         )
@@ -93,7 +94,7 @@ class CustomDataLoader:
                 name, extension = os.path.splitext(full_path) 
 
                 match extension:
-                    case ".pdf" | ".rst":
+                    case ".pdf" | ".rst" | ".sh" | ".md" | ".conf":
                         pass
                     case _:
                         # Links is a special case, its where we load arbitrary html
