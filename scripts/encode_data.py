@@ -51,43 +51,13 @@ class CustomDataLoader:
                 continue
 
             threading.Thread(target=self._process_document, args=(file,)).start()
-            if self.do_parent_document:
-                threading.Thread(target=self._process_document_parent_vector, args=(file,)).start()
 
             self.semaphore.acquire()
-
-            self._process_document_parent_vector(file)
 
     def save(self) -> None:
         print(len(self.documents))
         np.save('data.npy', np.asarray(self.documents, dtype=object))
     
-    def _process_document_parent_vector(self, file) -> None:
-        _, extension = os.path.splitext(file)
-
-        loader = TextLoader(file)
-
-        match extension:
-            case ".pdf":
-                loader = UnstructuredPDFLoader(file)
-            case ".rst":
-                loader = UnstructuredRSTLoader(file)
-        
-        document_map = []
-        parent_docs = self.parent_splitter.split_documents(loader.load())
-        for parent_doc in parent_docs:
-            child_doc = self.child_splitter.split_documents([parent_doc])
-            vector_responses = self.embeddings_model.embed_documents(
-                list(map(lambda document: document.page_content, child_doc))
-            )
-            for obj in child_doc:
-                obj.page_content = parent_doc.page_content
-            for doc in zip(vector_responses, child_doc):
-                document_map.append({
-                    "vector": doc[0],
-                    "document": doc[1]
-                })
-        self.documents.extend(document_map)
     
     def _generate_child_docs(self, parent_document):
         child_docs = self.child_splitter.split_documents([parent_document])
@@ -130,8 +100,9 @@ class CustomDataLoader:
                 "vector": doc[0],
                 "document": doc[1]
             })
-        for doc in parent_documents:
-            document_map.extend(self._generate_child_docs(doc))
+        if self.do_parent_document:
+            for doc in parent_documents:
+                document_map.extend(self._generate_child_docs(doc))
 
         with self.lock:
             print('\r', f'Embedding progress: {self.counter + 1}/{len(self.files) - 1}')
