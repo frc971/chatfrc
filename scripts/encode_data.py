@@ -17,16 +17,21 @@ from langchain.text_splitter import TokenTextSplitter
 
 class CustomDataLoader:
 
-    def __init__(self, chunk_size=500) -> None:
+    def __init__(self, chunk_size=500, parent_chunk_size=1000, child_chunk_size=100, do_parent_document=False) -> None:
         self.files = []
 
         self.documents = []
 
+        self.do_parent_document = do_parent_document
+
         self.embeddings_model = OpenAIEmbeddings(
             model="text-embedding-ada-002")
 
-        self.text_splitter = TokenTextSplitter(chunk_size=chunk_size,
-                                               chunk_overlap=0)
+        self.text_splitter = TokenTextSplitter(chunk_size=chunk_size, chunk_overlap=0)
+        
+        self.parent_splitter = TokenTextSplitter(chunk_size=parent_chunk_size, chunk_overlap=0)
+
+        self.child_splitter = TokenTextSplitter(chunk_size=child_chunk_size, chunk_overlap=0)
 
         self.counter = 0
 
@@ -43,14 +48,45 @@ class CustomDataLoader:
             if name == "data/links":
                 continue
 
-            thread = threading.Thread(target=self._process_document, args=(file,))
+            threading.Thread(target=self._process_document, args=(file,)).start()
+            if self.do_parent_document:
+                threading.Thread(target=self._process_document_parent_vector, args=(file,)).start()
 
             self.semaphore.acquire()
 
-            thread.start()
+            self._process_document_parent_vector(file)
 
     def save(self) -> None:
+        print(len(self.documents))
         np.save('data.npy', np.asarray(self.documents, dtype=object))
+    
+    def _process_document_parent_vector(self, file) -> None:
+        _, extension = os.path.splitext(file)
+
+        loader = TextLoader(file)
+
+        match extension:
+            case ".pdf":
+                loader = UnstructuredPDFLoader(file)
+            case ".rst":
+                loader = UnstructuredRSTLoader(file)
+        
+        document_map = []
+        parent_docs = self.parent_splitter.split_documents(loader.load())
+        for parent_doc in parent_docs:
+            child_doc = self.child_splitter.split_documents([parent_doc])
+            vector_responses = self.embeddings_model.embed_documents(
+                list(map(lambda document: document.page_content, child_doc))
+            )
+            for obj in child_doc:
+                obj.page_content = parent_doc.page_content
+            for doc in zip(vector_responses, child_doc):
+                document_map.append({
+                    "vector": doc[0],
+                    "document": doc[1]
+                })
+        self.documents.extend(document_map)
+
     
     def _process_document(self, file) -> None:
         _, extension = os.path.splitext(file)
@@ -110,7 +146,7 @@ def main():
         multiple filetypes better and can check embeddings against pinecone.
     """
 
-    loader = CustomDataLoader()
+    loader = CustomDataLoader(chunk_size=1000)
 
     loader.embed_documents()
 
