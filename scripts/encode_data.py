@@ -17,11 +17,11 @@ from langchain.text_splitter import TokenTextSplitter
 
 class CustomDataLoader:
 
-    def __init__(self, chunk_size=500, parent_chunk_size=1000, child_chunk_size=100, do_parent_document=False) -> None:
+    def __init__(self, chunk_size=500, parent_chunk_size=1000, child_chunk_size=100, do_parent_document=False, thread=False) -> None:
         #if do_parent_document = true, than the dataloader will generate a parent documents and child documents from the data
         #parent_chunk_size and child_chunk_size are parameters of do_parent_document
         self.files = []
-
+        self.thread = thread
         self.documents = []
 
         self.do_parent_document = do_parent_document
@@ -49,10 +49,12 @@ class CustomDataLoader:
 
             if name == "data/links":
                 continue
-
-            threading.Thread(target=self._process_document, args=(file,)).start()
-
-            self.semaphore.acquire()
+            
+            if self.thread:
+                threading.Thread(target=self._process_document, args=(file,)).start()
+                self.semaphore.acquire()
+            else:
+                self._process_document(file)
 
     def save(self) -> None:
         print(len(self.documents))
