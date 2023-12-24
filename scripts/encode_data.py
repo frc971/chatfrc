@@ -18,6 +18,8 @@ from langchain.text_splitter import TokenTextSplitter
 class CustomDataLoader:
 
     def __init__(self, chunk_size=500, parent_chunk_size=1000, child_chunk_size=100, do_parent_document=False) -> None:
+        #if do_parent_document = true, than the dataloader will generate a parent documents and child documents from the data
+        #parent_chunk_size and child_chunk_size are parameters of do_parent_document
         self.files = []
 
         self.documents = []
@@ -86,6 +88,21 @@ class CustomDataLoader:
                     "document": doc[1]
                 })
         self.documents.extend(document_map)
+    
+    def _generate_child_docs(self, parent_document):
+        child_docs = self.child_splitter.split_documents([parent_document])
+        vector_responses = self.embeddings_model.embed_documents(
+            list(map(lambda document: document.page_content, child_docs))
+        )
+        for doc in child_docs:
+            doc.page_content = parent_document.page_content
+        document_map = []
+        for doc in zip(vector_responses, child_docs):
+            document_map.append({
+                "vector": doc[0],
+                "document": doc[1]
+            })
+        return child_docs
 
     
     def _process_document(self, file) -> None:
@@ -101,6 +118,7 @@ class CustomDataLoader:
 
 
         documents = self.text_splitter.split_documents(loader.load())
+        parent_documents = self.parent_splitter.split_documents(loader.load())
         vector_responses = self.embeddings_model.embed_documents(
             list(map(lambda document: document.page_content, documents))
         )
@@ -112,6 +130,8 @@ class CustomDataLoader:
                 "vector": doc[0],
                 "document": doc[1]
             })
+        for doc in parent_documents:
+            document_map.extend(self._generate_child_docs(doc))
 
         with self.lock:
             print('\r', f'Embedding progress: {self.counter + 1}/{len(self.files) - 1}')
@@ -129,7 +149,7 @@ class CustomDataLoader:
                 name, extension = os.path.splitext(full_path) 
 
                 match extension:
-                    case ".pdf" | ".rst":
+                    case ".pdf" | ".rst" | ".md":
                         pass
                     case _:
                         # Links is a special case, its where we load arbitrary html
@@ -146,7 +166,7 @@ def main():
         multiple filetypes better and can check embeddings against pinecone.
     """
 
-    loader = CustomDataLoader(chunk_size=1000)
+    loader = CustomDataLoader()
 
     loader.embed_documents()
 
