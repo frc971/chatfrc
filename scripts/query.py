@@ -12,10 +12,10 @@ def main():
     embeddings = openai_client.embeddings.create(
         input = prompt,
         model=model
-    )
+    ).data[0].embedding
     results = client.search(
-        collection_name="default",
-        query_vector=embeddings.data[0].embedding,
+        collection_name="1000",
+        query_vector=embeddings,
         limit=3,
     )   
     print(results)
