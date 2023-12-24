@@ -14,7 +14,7 @@ def main():
         model=model
     ).data[0].embedding
     results = client.search(
-        collection_name="1000",
+        collection_name="default",
         query_vector=embeddings,
         limit=3,
     )   
