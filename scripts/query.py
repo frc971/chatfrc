@@ -2,8 +2,10 @@ from qdrant_client import QdrantClient
 
 from openai import OpenAI
 
+from dotenv import load_dotenv
 
 def main():
+    load_dotenv()
     client = QdrantClient("0.0.0.0", port=6333)
     openai_client = OpenAI()
 
