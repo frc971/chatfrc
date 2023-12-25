@@ -7,7 +7,8 @@ from qdrant_client.http import models
 
 def main():
     client = QdrantClient("0.0.0.0", port=6333)
-    client.create_collection(collection_name='default',
+    collection_name = 'default'
+    client.create_collection(collection_name=collection_name,
                              vectors_config=models.VectorParams(
                                  size=1536, distance=models.Distance.COSINE))
 
@@ -19,7 +20,7 @@ def main():
               end='',
               flush=True)
 
-        client.upsert(collection_name='default',
+        client.upsert(collection_name=collection_name,
                       points=[
                           models.PointStruct(id=i,
                                              payload={
