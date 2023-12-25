@@ -76,7 +76,7 @@ class CustomDataLoader:
                 "vector": doc[0],
                 "document": doc[1]
             })
-        return child_docs
+        return document_map
 
     
     def _process_document(self, file) -> None:
