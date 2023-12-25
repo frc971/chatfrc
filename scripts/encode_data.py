@@ -9,7 +9,7 @@ from langchain.document_loaders.base import BaseLoader
 import numpy as np
 from dotenv import load_dotenv
 
-from langchain.document_loaders import DirectoryLoader, TextLoader, UnstructuredPDFLoader, UnstructuredRSTLoader
+from langchain.document_loaders import DirectoryLoader, TextLoader, UnstructuredPDFLoader, UnstructuredRSTLoader, UnstructuredMarkdownLoader
 from langchain.embeddings import OpenAIEmbeddings
 
 from langchain.text_splitter import TokenTextSplitter
@@ -87,6 +87,8 @@ class CustomDataLoader:
                 loader = UnstructuredPDFLoader(file)
             case ".rst":
                 loader = UnstructuredRSTLoader(file)
+            case ".md":
+                loader = UnstructuredMarkdownLoader(file)
 
 
         documents = self.text_splitter.split_documents(loader.load())
