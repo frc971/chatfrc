@@ -3,21 +3,35 @@
 
 	import { ChatHistoryType } from '$lib/history';
 	import { streamAsyncIterator } from '$lib/iterable_stream';
+	import type { ChatHistory } from '$lib/history';
+	import { CompletionState } from '$lib/state';
 
 	import { Icon } from '@steeze-ui/svelte-icon';
-	import { PaperAirplane, Trash } from '@steeze-ui/heroicons';
+	import { PaperAirplane, Trash, Stop } from '@steeze-ui/heroicons';
 
 	import { writable } from 'svelte/store';
-	import type { ChatHistory } from '$lib/history';
 	import markdownit from 'markdown-it';
+	import { setContext } from 'svelte';
 
-	export const historyStore = writable<ChatHistory[]>([]);
+	let history: ChatHistory[] = [];
 
 	let userInput = '';
 
+	let cancelStream = false;
+
+	let completionState = writable<CompletionState>(CompletionState.Completed);
+
+	setContext('completionState', completionState);
+
 	async function send() {
-		$historyStore = [
-			...$historyStore,
+		if ($completionState == CompletionState.Loading) {
+			return;
+		}
+
+		completionState.set(CompletionState.Loading);
+
+		history = [
+			...history,
 			{
 				type: ChatHistoryType.Human,
 				content: userInput
@@ -29,7 +43,7 @@
 		const response = await fetch('api/completion', {
 			method: 'POST',
 			body: JSON.stringify({
-				chatHistory: $historyStore
+				chatHistory: history
 			}),
 			headers: {
 				'content-type': 'application/json'
@@ -38,8 +52,8 @@
 
 		const stream = response.body;
 
-		$historyStore = [
-			...$historyStore,
+		history = [
+			...history,
 			{
 				type: ChatHistoryType.AI,
 				content: ''
@@ -50,13 +64,27 @@
 
 		for await (const chunk of streamAsyncIterator(stream!)) {
 			console.log(decoder.decode(chunk));
-			$historyStore[$historyStore.length - 1].content += decoder.decode(chunk);
+			history[history.length - 1].content += decoder.decode(chunk);
+
+			// TODO(max): Find a way to lock the actual completion from OpenAI, right now this will still use the full tokens
+			if (cancelStream) {
+				cancelStream = false;
+				break;
+			}
 		}
 		const md = markdownit('commonmark')
-		$historyStore[$historyStore.length - 1].content = md.render($historyStore[$historyStore.length - 1].content)
+		history[history.length - 1].content = md.render(history[history.length - 1].content)
+
+		completionState.set(CompletionState.Completed);
 	}
 
-	const reset_chat = async () => historyStore.set([]);
+	const stop = async () => {
+		cancelStream = true;
+	};
+
+	const reset_chat = async () => {
+		history = [];
+	};
 </script>
 
 <div
@@ -71,10 +99,15 @@
 			placeholder="Enter your message..."
 			class="m-auto outline-none active:border-none rounded-md p-2 flex-1"
 		/>
-
-		<button on:click={send}>
-			<Icon src={PaperAirplane} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
-		</button>
+		{#if $completionState == CompletionState.Loading}
+			<button on:click={stop}>
+				<Icon src={Stop} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
+			</button>
+		{:else}
+			<button on:click={send}>
+				<Icon src={PaperAirplane} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
+			</button>
+		{/if}
 
 		<button on:click={reset_chat}>
 			<Icon src={Trash} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
@@ -82,7 +115,7 @@
 	</form>
 
 	<div class="w-full overflow-y-auto">
-		{#each $historyStore as { type, content }}
+		{#each history as { type, content }}
 			<Message {type} {content} />
 		{/each}
 	</div>

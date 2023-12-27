@@ -1,13 +1,31 @@
 <script lang="ts">
-	import { ChatHistoryType } from '$lib/history';
-
 	export let content = '';
 	export let type = '';
+
+	import { ChatHistoryType } from '$lib/history';
+	import { CompletionState } from '$lib/state';
+	import { getContext } from 'svelte';
+	import type { Writable } from 'svelte/store';
+	import Spinner from './Spinner.svelte';
+
+	const completionStateStore = getContext<Writable<CompletionState>>('completionState');
+
+	let completionState = $completionStateStore;
+
+	$: if ($completionStateStore == CompletionState.Completed) {
+		completionState = CompletionState.Completed;
+	}
+
+	$: console.log(completionState);
 </script>
 
 {#if type == ChatHistoryType.AI}
 	<div class="message bg-gray-100">
-		<p>🤖</p>
+		{#if completionState == CompletionState.Loading}
+			<p><Spinner /></p>
+		{:else}
+			<p>🤖</p>
+		{/if}
 
 		<p>{@html content}</p>
 	</div>
