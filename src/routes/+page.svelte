@@ -12,6 +12,7 @@
 	import { writable } from 'svelte/store';
 	import markdownit from 'markdown-it';
 	import { setContext } from 'svelte';
+	import * as sanitizeHtml from 'sanitize-html';
 
 	let history: ChatHistory[] = [];
 
@@ -74,6 +75,7 @@
 		}
 		const md = markdownit('commonmark');
 		history[history.length - 1].content = md.render(history[history.length - 1].content);
+		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content)
 
 		completionState.set(CompletionState.Completed);
 	}
