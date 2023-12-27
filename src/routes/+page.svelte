@@ -74,7 +74,7 @@
 			}
 		}
 		const md = markdownit('commonmark');
-		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content)
+		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content);
 		history[history.length - 1].content = md.render(history[history.length - 1].content);
 
 		completionState.set(CompletionState.Completed);
