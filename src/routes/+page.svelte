@@ -12,7 +12,7 @@
 	import { writable } from 'svelte/store';
 	import markdownit from 'markdown-it';
 	import { setContext } from 'svelte';
-	import * as sanitizeHtml from 'sanitize-html';
+	import sanitizeHtml from 'sanitize-html';
 
 	let history: ChatHistory[] = [];
 
