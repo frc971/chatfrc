@@ -9,7 +9,7 @@
 	<div class="message bg-gray-100">
 		<p>🤖</p>
 
-		<p>{content}</p>
+		<p>{@html content}</p>
 	</div>
 {:else}
 	<div class="message">

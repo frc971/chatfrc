@@ -9,6 +9,7 @@
 
 	import { writable } from 'svelte/store';
 	import type { ChatHistory } from '$lib/history';
+	import markdownit from 'markdown-it';
 
 	export const historyStore = writable<ChatHistory[]>([]);
 
@@ -51,6 +52,8 @@
 			console.log(decoder.decode(chunk));
 			$historyStore[$historyStore.length - 1].content += decoder.decode(chunk);
 		}
+		const md = markdownit('commonmark')
+		$historyStore[$historyStore.length - 1].content = md.render($historyStore[$historyStore.length - 1].content)
 	}
 
 	const reset_chat = async () => historyStore.set([]);
