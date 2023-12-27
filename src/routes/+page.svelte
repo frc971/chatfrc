@@ -35,7 +35,7 @@
 			...history,
 			{
 				type: ChatHistoryType.Human,
-				content: sanitizeHtml(userInput)
+				content: userInput
 			}
 		];
 

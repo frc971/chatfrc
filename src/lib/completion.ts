@@ -8,6 +8,7 @@ import { ChatHistoryType, type ChatHistory } from '$lib/history';
 import { BytesOutputParser } from 'langchain/schema/output_parser';
 
 import { QdrantClient } from '@qdrant/js-client-rest';
+import sanitizeHtml from 'sanitize-html';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
@@ -98,6 +99,7 @@ export class ChatbotCompletion {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async query(history: ChatHistory[]): Promise<any> {
+		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content)
 		const vector_response = await this.get_vector_response(history[history.length - 1].content);
 
 		const context = vector_response.map((content: string) => {
