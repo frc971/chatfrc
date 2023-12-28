@@ -99,7 +99,7 @@ export class ChatbotCompletion {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async query(history: ChatHistory[]): Promise<any> {
-		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content)
+		history[history.length - 1].content = sanitizeHtml(history[history.length - 1].content);
 		const vector_response = await this.get_vector_response(history[history.length - 1].content);
 
 		const context = vector_response.map((content: string) => {
