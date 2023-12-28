@@ -8,6 +8,9 @@ import { ChatHistoryType, type ChatHistory } from '$lib/history';
 import { BytesOutputParser } from 'langchain/schema/output_parser';
 
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { initializeAgentExecutorWithOptions } from 'langchain/agents';
+import { SerpAPI } from 'langchain/tools';
+import { Calculator } from 'langchain/tools/calculator';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
@@ -18,6 +21,7 @@ export class ChatbotCompletion {
 
 	private qdrant_client: QdrantClient;
 	private qdrant_collection: string;
+	private tools: any;
 
 	constructor(
 		openai_api_key: string,
@@ -29,14 +33,15 @@ export class ChatbotCompletion {
 			qdrant_collection?: string;
 		}
 	) {
-		this.model = new ChatOpenAI({
-			openAIApiKey: openai_api_key,
-			temperature: 0.7,
-			streaming: true,
-			maxTokens: 250,
-			modelName: openai_model,
-			verbose: true
-		});
+		// this.model = new ChatOpenAI({
+		// 	openAIApiKey: openai_api_key,
+		// 	temperature: 0.7,
+		// 	streaming: true,
+		// 	maxTokens: 250,
+		// 	modelName: openai_model,
+		// 	verbose: false
+		// });
+		this.model = new ChatOpenAI({ temperature: 0 });
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
@@ -45,6 +50,15 @@ export class ChatbotCompletion {
 		this.qdrant_client = new QdrantClient({
 			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
 		});
+
+		this.tools = [
+			new SerpAPI(process.env.SERPAPI_API_KEY, {
+				location: 'Austin,Texas,United States',
+				hl: 'en',
+				gl: 'us'
+			}),
+			new Calculator()
+		];
 
 		this.qdrant_collection = qdrant_collection;
 	}
@@ -60,7 +74,7 @@ export class ChatbotCompletion {
 			with_vector: true
 		});
 
-		console.log(qdrant_results);
+		// console.log(qdrant_results);
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return qdrant_results.map((result: any) => {
@@ -76,7 +90,7 @@ export class ChatbotCompletion {
 
 		const vector_response = await this.qdrant_similarity_search(query, 2);
 
-		console.log(vector_response);
+		// console.log(vector_response);
 
 		console.log('Vector response retreived');
 
@@ -97,7 +111,17 @@ export class ChatbotCompletion {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async query(history: ChatHistory[]): Promise<any> {
+	public async query(history: ChatHistory[], input: any): Promise<any> {
+		const executor = await initializeAgentExecutorWithOptions(this.tools, this.model, {
+			agentType: 'zero-shot-react-description',
+			verbose: false
+		});
+		const result = await executor.invoke({ input });
+		console.log('******')
+		console.log(input);
+		console.log(result);
+		return result;
+
 		const vector_response = await this.get_vector_response(history[history.length - 1].content);
 
 		const context = vector_response.map((content: string) => {
@@ -116,15 +140,12 @@ export class ChatbotCompletion {
 		const chat_history = [
 			new SystemMessage({
 				content: `You are a kind, professional, understanding, and enthusiastic
-                    assistant that is an expert in mechanical, electrical, and software engineering, but most importantly FIRST robotics
-                    and helping all levels of frc robotics teams. Avoiding repeating the same information and useless statements.
-                    The current date is ${new Date()}.`
+		            assistant that is an expert in mechanical, electrical, and software engineering, but most importantly FIRST robotics
+		            and helping all levels of frc robotics teams. Avoiding repeating the same information and useless statements.
+		            The current date is ${new Date()}.`
 			}),
-			...context,
 			...this.generate_history(history)
 		];
-
-		// TODO(max): Add history pruning based on token length
 
 		return await this.model.pipe(new BytesOutputParser()).stream(chat_history);
 	}

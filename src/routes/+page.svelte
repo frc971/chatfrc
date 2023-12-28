@@ -37,19 +37,19 @@
 			}
 		];
 
-		userInput = '';
 
 		const response = await fetch('api/completion', {
 			method: 'POST',
 			body: JSON.stringify({
-				chatHistory: history
+				chatHistory: history,
+				input: userInput,
 			}),
 			headers: {
 				'content-type': 'application/json'
 			}
 		});
+		userInput = '';
 
-		const stream = response.body;
 
 		history = [
 			...history,
@@ -58,19 +58,13 @@
 				content: ''
 			}
 		];
+		const data = await response.json();
+      	let message = data.output;
+		console.log('%%%%%%');
+		console.log(message);
+		console.log("^^^^");
 
-		const decoder = new TextDecoder('utf-8');
-
-		for await (const chunk of streamAsyncIterator(stream!)) {
-			console.log(decoder.decode(chunk));
-			history[history.length - 1].content += decoder.decode(chunk);
-
-			// TODO(max): Find a way to lock the actual completion from OpenAI, right now this will still use the full tokens
-			if (cancelStream) {
-				cancelStream = false;
-				break;
-			}
-		}
+		history[history.length - 1].content = message;
 
 		completionState.set(CompletionState.Completed);
 	}
