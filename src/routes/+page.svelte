@@ -37,19 +37,17 @@
 			}
 		];
 
-
 		const response = await fetch('api/completion', {
 			method: 'POST',
 			body: JSON.stringify({
 				chatHistory: history,
-				input: userInput,
+				input: userInput
 			}),
 			headers: {
 				'content-type': 'application/json'
 			}
 		});
 		userInput = '';
-
 
 		history = [
 			...history,
@@ -59,10 +57,8 @@
 			}
 		];
 		const data = await response.json();
-      	let message = data.output;
-		console.log('%%%%%%');
-		console.log(message);
-		console.log("^^^^");
+		console.log(data)
+		let message = data.output;
 
 		history[history.length - 1].content = message;
 
