@@ -1,4 +1,3 @@
-import { CONDA_DEFAULT_ENV } from '$env/static/private';
 import { ChatbotCompletion } from '$lib';
 
 //TODO(max): Change this function to another protocol, nothing is being POSTed
