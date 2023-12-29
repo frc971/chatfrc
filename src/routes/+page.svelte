@@ -57,7 +57,7 @@
 			}
 		];
 		const data = await response.json();
-		console.log(data)
+		console.log(data);
 		let message = data.output;
 
 		history[history.length - 1].content = message;

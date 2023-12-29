@@ -47,8 +47,7 @@ export class ChatbotCompletion {
 			openai_model?: string;
 			qdrant_collection?: string;
 		}
-	) 
-	{
+	) {
 		this.model = new ChatOpenAI({
 			openAIApiKey: openai_api_key,
 			temperature: 0.7,
@@ -68,17 +67,17 @@ export class ChatbotCompletion {
 
 		this.tools = [
 			new SerpAPI(process.env.SERPAPI_API_KEY, {
-			  location: "Austin,Texas,United States",
-			  hl: "en",
-			  gl: "us",
+				location: 'Austin,Texas,United States',
+				hl: 'en',
+				gl: 'us'
 			}),
-			new Calculator(),
-		  ];
+			new Calculator()
+		];
 
 		this.qdrant_collection = qdrant_collection;
 	}
 
-	public async generate_executor(){
+	public async generate_executor() {
 		this.executor = await initializeAgentExecutorWithOptions(this.tools, this.model, {
 			agentType: 'zero-shot-react-description',
 			verbose: false
@@ -100,76 +99,75 @@ export class ChatbotCompletion {
 		const SUFFIX = `Begin!
 		Question: {input}
 		Thought:`;
-		console.log('checkpoint')
-		if (!("input" in values) || !("intermediate_steps" in values)) {
-			throw new Error("Missing input or agent_scratchpad from values.");
-		  }
-		  /** Extract and case the intermediateSteps from values as Array<AgentStep> or an empty array if none are passed */
-		  const intermediateSteps = values.intermediate_steps
+		console.log('checkpoint');
+		if (!('input' in values) || !('intermediate_steps' in values)) {
+			throw new Error('Missing input or agent_scratchpad from values.');
+		}
+		/** Extract and case the intermediateSteps from values as Array<AgentStep> or an empty array if none are passed */
+		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
 			: [];
-		  /** Call the helper `formatLogToString` which returns the steps as a string  */
-		  const agentScratchpad = formatLogToString(intermediateSteps);
-		  /** Construct the tool strings */
-		  const toolStrings = this.tools
+		/** Call the helper `formatLogToString` which returns the steps as a string  */
+		const agentScratchpad = formatLogToString(intermediateSteps);
+		/** Construct the tool strings */
+		const toolStrings = this.tools
 			.map((tool: any) => `${tool.name}: ${tool.description}`)
-			.join("\n");
-		  const toolNames = this.tools.map((tool: any) => tool.name).join(",\n");
-		  /** Create templates and format the instructions and suffix prompts */
-		  const prefixTemplate = new PromptTemplate({
+			.join('\n');
+		const toolNames = this.tools.map((tool: any) => tool.name).join(',\n');
+		/** Create templates and format the instructions and suffix prompts */
+		const prefixTemplate = new PromptTemplate({
 			template: PREFIX,
-			inputVariables: ["tools"],
-		  });
-		  const instructionsTemplate = new PromptTemplate({
+			inputVariables: ['tools']
+		});
+		const instructionsTemplate = new PromptTemplate({
 			template: TOOL_INSTRUCTIONS_TEMPLATE,
-			inputVariables: ["tool_names"],
-		  });
-		  const suffixTemplate = new PromptTemplate({
+			inputVariables: ['tool_names']
+		});
+		const suffixTemplate = new PromptTemplate({
 			template: SUFFIX,
-			inputVariables: ["input"],
-		  });
-		  /** Format both templates by passing in the input variables */
-		  const formattedPrefix = await prefixTemplate.format({
-			tools: toolStrings,
-		  });
-		  const formattedInstructions = await instructionsTemplate.format({
-			tool_names: toolNames,
-		  });
-		  const formattedSuffix = await suffixTemplate.format({
-			input: values.input,
-		  });
-		  /** Construct the final prompt string */
-		  const formatted = [
+			inputVariables: ['input']
+		});
+		/** Format both templates by passing in the input variables */
+		const formattedPrefix = await prefixTemplate.format({
+			tools: toolStrings
+		});
+		const formattedInstructions = await instructionsTemplate.format({
+			tool_names: toolNames
+		});
+		const formattedSuffix = await suffixTemplate.format({
+			input: values.input
+		});
+		/** Construct the final prompt string */
+		const formatted = [
 			formattedPrefix,
 			formattedInstructions,
 			formattedSuffix,
-			agentScratchpad,
-		  ].join("\n");
-		  /** Return the message as a HumanMessage. */
-		  return [new HumanMessage(formatted)];
+			agentScratchpad
+		].join('\n');
+		/** Return the message as a HumanMessage. */
+		return [new HumanMessage(formatted)];
 	}
 	private customOutputParser(text: string): AgentAction | AgentFinish {
 		//From https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 		/** If the input includes "Final Answer" return as an instance of `AgentFinish` */
-		if (text.includes("Final Answer:")) {
-		  const parts = text.split("Final Answer:");
-		  const input = parts[parts.length - 1].trim();
-		  const finalAnswers = { output: input };
-		  return { log: text, returnValues: finalAnswers };
+		if (text.includes('Final Answer:')) {
+			const parts = text.split('Final Answer:');
+			const input = parts[parts.length - 1].trim();
+			const finalAnswers = { output: input };
+			return { log: text, returnValues: finalAnswers };
 		}
 		/** Use regex to extract any actions and their values */
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(text);
 		if (!match) {
-		  throw new Error(`Could not parse LLM output: ${text}`);
+			throw new Error(`Could not parse LLM output: ${text}`);
 		}
 		/** Return as an instance of `AgentAction` */
 		return {
-		  tool: match[1].trim(),
-		  toolInput: match[2].trim().replace(/^"+|"+$/g, ""),
-		  log: text,
+			tool: match[1].trim(),
+			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
+			log: text
 		};
-	  }
-	
+	}
 
 	public async generate_executor() {
 		this.executor = await initializeAgentExecutorWithOptions(this.tools, this.model, {
@@ -177,8 +175,8 @@ export class ChatbotCompletion {
 			verbose: false
 		});
 	}
-	private formatMessages = async (values:InputValues) => {
-	// private async formatMessages(values: InputValues): Promise<Array<BaseMessage>> {
+	private formatMessages = async (values: InputValues) => {
+		// private async formatMessages(values: InputValues): Promise<Array<BaseMessage>> {
 		//From https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 		const PREFIX = `Answer the following questions as best you can. You have access to the following tools: {tools}.`;
 		const TOOL_INSTRUCTIONS_TEMPLATE = `You can use the following format in your response:
@@ -237,15 +235,15 @@ export class ChatbotCompletion {
 			formattedSuffix,
 			agentScratchpad
 		].join('\n');
-		console.log(values)
-		console.log(formatted)
+		console.log(values);
+		console.log(formatted);
 		return [new HumanMessage(formatted)];
-	}
+	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		//From https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 		/** If the input includes "Final Answer" return as an instance of `AgentFinish` */
 		if (text.lc_kwargs.content.includes('Final Answer:')) {
-			console.log(text.lc_kwargs.content)
+			console.log(text.lc_kwargs.content);
 			const parts = text.lc_kwargs.content.split('Final Answer:');
 			const input = parts[parts.length - 1].trim();
 			const finalAnswers = { output: input };
@@ -279,7 +277,6 @@ export class ChatbotCompletion {
 			agent: runnable,
 			tools: this.tools
 		});
-
 
 		const tmp = input;
 
