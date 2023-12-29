@@ -11,32 +11,26 @@ import {
 
 import { type ChatHistory } from '$lib/history';
 
-import { QdrantClient } from '@qdrant/js-client-rest';
-import { initializeAgentExecutorWithOptions } from 'langchain/agents';
 import { SerpAPI } from 'langchain/tools';
 import { Calculator } from 'langchain/tools/calculator';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { PromptTemplate } from 'langchain/prompts';
 import { AgentExecutor } from 'langchain/agents';
-
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
-const DEFAULT_COLLECTION = 'default';
 
 export class ChatbotCompletion {
 	private model: ChatOpenAI;
 	private embeddings_model: OpenAIEmbeddings;
 
-	private tools: object;
+	private tools: any[];
 
 	constructor(
 		openai_api_key: string,
 		{
-			openai_model = DEFAULT_MODEL,
-			qdrant_collection = DEFAULT_COLLECTION
+			openai_model = DEFAULT_MODEL
 		}: {
 			openai_model?: string;
-			qdrant_collection?: string;
 		}
 	) {
 		this.model = new ChatOpenAI({
@@ -52,9 +46,6 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
-		this.qdrant_client = new QdrantClient({
-			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
-		});
 
 		this.tools = [
 			new SerpAPI(process.env.SERPAPI_API_KEY, {
@@ -65,16 +56,8 @@ export class ChatbotCompletion {
 			new Calculator()
 		];
 		console.log(typeof this.tools);
-
-		this.qdrant_collection = qdrant_collection;
 	}
 
-	public async generate_executor() {
-		this.executor = await initializeAgentExecutorWithOptions(this.tools, this.model, {
-			agentType: 'zero-shot-react-description',
-			verbose: false
-		});
-	}
 	private formatMessages = async (values: InputValues) => {
 		// private async formatMessages(values: InputValues): Promise<Array<BaseMessage>> {
 		//From https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent

@@ -9,7 +9,6 @@ export async function POST(params: { request: Request }) {
 		openai_model: import.meta.env.VITE_OPENAI_MODEL_NAME!
 	});
 
-	await completion_manager.generate_executor();
 	const output = await completion_manager.query(chatHistory, input);
 
 	return new Response(JSON.stringify(output), {
