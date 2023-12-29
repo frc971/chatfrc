@@ -9,19 +9,13 @@ export async function POST(params: { request: Request }) {
 	const completion_manager = new ChatbotCompletion(import.meta.env.VITE_OPENAI_API_KEY!, {
 		openai_model: import.meta.env.VITE_OPENAI_MODEL_NAME!
 	});
-	
-	const output = await completion_manager.query(chatHistory, input);
-	console.log('-------')
-	console.log(output);
-	console.log("^^^^^")
 
-	const response = new Response(output);
-	console.log(new Response("BRUH"));
-	console.log("^^^^^")
+	await completion_manager.generate_executor();
+	const output = await completion_manager.query(chatHistory, input);
+	
 	return new Response(JSON.stringify(output), {
         headers: {
             'Content-Type': 'text/plain'
         }
     });
-	return new Response();
 }

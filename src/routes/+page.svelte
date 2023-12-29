@@ -60,9 +60,6 @@
 		];
 		const data = await response.json();
       	let message = data.output;
-		console.log('%%%%%%');
-		console.log(message);
-		console.log("^^^^");
 
 		history[history.length - 1].content = message;
 
