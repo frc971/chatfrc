@@ -10,20 +10,34 @@ import {
 } from 'langchain/schema';
 
 import { type ChatHistory } from '$lib/history';
-
+import { SearchTool } from './database_tool';
 import { SerpAPI } from 'langchain/tools';
 import { Calculator } from 'langchain/tools/calculator';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { PromptTemplate } from 'langchain/prompts';
 import { AgentExecutor } from 'langchain/agents';
+import { Tool } from 'langchain/tools';
+import { renderTextDescription } from 'langchain/tools/render';
+import { formatXml } from 'langchain/agents/format_scratchpad/xml';
+// import { ChatPromptTemplate } from "langchain/prompts";
+import { XMLAgentOutputParser } from "langchain/agents/xml/output_parser";
+import { DynamicTool, DynamicStructuredTool } from "langchain/tools";
+import { pull } from "langchain/hub";
+import { z } from "zod";
+import type { ChatPromptTemplate } from "@langchain/core/prompts";
+import { createOpenAIFunctionsAgent } from "langchain/agents";
+
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 export class ChatbotCompletion {
 	private model: ChatOpenAI;
 	private embeddings_model: OpenAIEmbeddings;
+	private executor: AgentExecutor;
+	private openai_api_key: string;
+	private model_name;
 
-	private tools: any[];
+	private tools: Tool[];
 
 	constructor(
 		openai_api_key: string,
@@ -33,13 +47,14 @@ export class ChatbotCompletion {
 			openai_model?: string;
 		}
 	) {
+		this,this.model_name = DEFAULT_MODEL;
+		this.openai_api_key = openai_api_key
 		this.model = new ChatOpenAI({
 			openAIApiKey: openai_api_key,
-			temperature: 0.7,
-			streaming: true,
-			maxTokens: 250,
+			temperature: 0.0,
 			modelName: openai_model,
-			verbose: false
+			verbose: false,
+			stop: ['\nObservation']
 		});
 
 		this.embeddings_model = new OpenAIEmbeddings({
@@ -48,14 +63,14 @@ export class ChatbotCompletion {
 		});
 
 		this.tools = [
-			new SerpAPI(process.env.SERPAPI_API_KEY, {
-				location: 'Austin,Texas,United States',
-				hl: 'en',
-				gl: 'us'
-			}),
+			new SearchTool(),
+			// new SerpAPI(process.env.SERPAPI_API_KEY, {
+			// 	location: 'Austin,Texas,United States',
+			// 	hl: 'en',
+			// 	gl: 'us'
+			// }),
 			new Calculator()
 		];
-		console.log(typeof this.tools);
 	}
 
 	private formatMessages = async (values: InputValues) => {
@@ -85,9 +100,9 @@ export class ChatbotCompletion {
 		const agentScratchpad = formatLogToString(intermediateSteps);
 		/** Construct the tool strings */
 		const toolStrings = this.tools
-			.map((tool: object) => `${tool.name}: ${tool.description}`)
+			.map((tool: Tool) => `${tool.name}: ${tool.description}`)
 			.join('\n');
-		const toolNames = this.tools.map((tool: object) => tool.name).join(',\n');
+		const toolNames = this.tools.map((tool: Tool) => tool.name).join(',\n');
 		/** Create templates and format the instructions and suffix prompts */
 		const prefixTemplate = new PromptTemplate({
 			template: PREFIX,
@@ -109,7 +124,7 @@ export class ChatbotCompletion {
 			tool_names: toolNames
 		});
 		const formattedSuffix = await suffixTemplate.format({
-			input: values.input.text
+			input: values.input
 		});
 		/** Construct the final prompt string */
 		const formatted = [
@@ -118,11 +133,14 @@ export class ChatbotCompletion {
 			formattedSuffix,
 			agentScratchpad
 		].join('\n');
+		console.log(formatted);
 		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		//From https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 		/** If the input includes "Final Answer" return as an instance of `AgentFinish` */
+		console.log('OUTPUT:');
+		console.log(text.lc_kwargs.content);
 		if (text.lc_kwargs.content.includes('Final Answer:')) {
 			const parts = text.lc_kwargs.content.split('Final Answer:');
 			const input = parts[parts.length - 1].trim();
@@ -141,29 +159,113 @@ export class ChatbotCompletion {
 			log: text.lc_kwargs.content
 		};
 	}
+
+	public async setup(){
+		const llm = new ChatOpenAI({
+			modelName: "gpt-3.5-turbo",
+			temperature: 0,
+		  });
+
+		  
+		  const tools = [
+			new DynamicTool({
+			  name: "FOO",
+			  description:
+				"call this to get the value of foo. input should be an empty string.",
+			  func: async () => "baz",
+			}),
+			new DynamicStructuredTool({
+			  name: "random-number-generator",
+			  description: "generates a random number between two input numbers",
+			  schema: z.object({
+				low: z.number().describe("The lower bound of the generated number"),
+				high: z.number().describe("The upper bound of the generated number"),
+			  }),
+			  func: async ({ low, high }) =>
+				(Math.random() * (high - low) + low).toString(), // Outputs still must be strings
+			}),
+		  ];
+		  
+		  const prompt = await pull<ChatPromptTemplate>(
+			"hwchase17/openai-functions-agent"
+		  );
+		  
+		  const agent = await createOpenAIFunctionsAgent({
+			llm,
+			tools,
+			prompt,
+		  });
+		  
+		  const agentExecutor = new AgentExecutor({
+			agent,
+			tools,
+			verbose: true,
+		  });
+		  this.executor = agentExecutor;
+		//   await this.executor.invoke({
+		// 	input: "What is the value of foo?"
+		//   })
+	}
+
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async query(history: ChatHistory[], input: any): Promise<any> {
-		this.formatMessages.bind(this);
-		const runnable = RunnableSequence.from([
-			{
-				input: (values: InputValues) => values,
-				intermediate_steps: (values: InputValues) => values.steps
-			},
-			this.formatMessages,
-			this.model,
-			this.customOutputParser
-		]);
-		const ex = new AgentExecutor({
-			agent: runnable,
-			tools: this.tools
-		});
+		this.executor.invoke({
+			input: "What is the value of foo?"
+		})
+		return;
+		const llm = new ChatOpenAI({
+			modelName: "gpt-3.5-turbo",
+			temperature: 0,
+		  });
 
-		const tmp = input;
-
-		console.log(`Executing with input "${tmp}"...`);
-
-		const res = await ex.invoke({ text: tmp });
-
-		return res;
+		  
+		  const tools = [
+			new DynamicTool({
+			  name: "FOO",
+			  description:
+				"call this to get the value of foo. input should be an empty string.",
+			  func: async () => "baz",
+			}),
+			new DynamicStructuredTool({
+			  name: "random-number-generator",
+			  description: "generates a random number between two input numbers",
+			  schema: z.object({
+				low: z.number().describe("The lower bound of the generated number"),
+				high: z.number().describe("The upper bound of the generated number"),
+			  }),
+			  func: async ({ low, high }) =>
+				(Math.random() * (high - low) + low).toString(), // Outputs still must be strings
+			}),
+		  ];
+		  
+		  const prompt = await pull<ChatPromptTemplate>(
+			"hwchase17/openai-functions-agent"
+		  );
+		  
+		  const agent = await createOpenAIFunctionsAgent({
+			llm,
+			tools,
+			prompt,
+		  });
+		  
+		  const agentExecutor = new AgentExecutor({
+			agent,
+			tools,
+			verbose: true,
+		  });
+		  
+		  const result = await agentExecutor.invoke({
+			input: `What is the value of foo?`,
+		  });
+		  
+		  console.log(`Got output ${result.output}`);
+		  
+		  
+		  const result2 = await agentExecutor.invoke({
+			input: `Generate a random number between 1 and 10.`,
+		  });
+		  
+		  console.log(`Got output ${result2.output}`);
 	}
 }
