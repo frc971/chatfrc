@@ -3,11 +3,11 @@ import { Calculator } from 'langchain/tools/calculator';
 import { DynamicTool, DynamicStructuredTool } from 'langchain/tools';
 import { z } from 'zod';
 
-if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
-	throw console.warn('SERPAPI_API_KEY is undefined');
-}
-
 function getTools() {
+	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
+		import.meta.env.VITE_SERPAPI_API_KEY = 'no_key';
+		throw console.warn('SERPAPI_API_KEY is undefined');
+	}
 	const tools = [
 		new DynamicTool({
 			//for testing remove when merge
