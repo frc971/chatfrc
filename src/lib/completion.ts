@@ -15,7 +15,7 @@ import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
 import { PREFIX, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
-import { tools } from './tools';
+import { getTools } from './tools';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
@@ -52,6 +52,7 @@ export class ChatbotCompletion {
 	}
 
 	public async setup() {
+		const tools = getTools();
 		const llm = new ChatOpenAI({
 			modelName: 'gpt-3.5-turbo',
 			temperature: 0,
@@ -77,6 +78,7 @@ export class ChatbotCompletion {
 		this.executor = executor;
 	}
 	private formatMessages = async (values: InputValues) => {
+		const tools = getTools();
 		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
 			: [];
