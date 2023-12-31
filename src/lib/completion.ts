@@ -101,7 +101,6 @@ export class ChatbotCompletion {
 		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
-
 		const content = text.lc_kwargs.content;
 		if (content.includes('Final Answer:')) {
 			const parts = content.split('Final Answer:');
