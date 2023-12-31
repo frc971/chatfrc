@@ -4,7 +4,7 @@ import { DynamicTool, DynamicStructuredTool } from 'langchain/tools';
 import { z } from 'zod';
 
 if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
-	throw new Error('SERPAPI_API_KEY is undefined');
+	throw console.warn('SERPAPI_API_KEY is undefined');
 }
 
 function getTools() {
