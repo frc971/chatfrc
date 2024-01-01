@@ -113,6 +113,7 @@ export class ChatbotCompletion {
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
 		if (match == null) {
 			console.warn('Could not parse output');
+			console.warn(text);
 			process.exit(42);
 		}
 
