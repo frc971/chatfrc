@@ -24,7 +24,6 @@ function getTools() {
 					limit: 1
 				});
 				const output: string = response[0].payload!.pageContent as string;
-				console.log(output);
 				return output;
 			}
 		}),
