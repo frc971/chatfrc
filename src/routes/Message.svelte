@@ -27,7 +27,7 @@
 			<p>🤖</p>
 		{/if}
 
-		<p>{content}</p>
+		<p>{@html content}</p>
 	</div>
 {:else}
 	<div class="message">
