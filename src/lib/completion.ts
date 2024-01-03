@@ -16,6 +16,8 @@ import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
 import { PREFIX, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
+import { collapseDocs } from 'langchain/chains/combine_documents/reduce';
+import { colors } from './colors';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
@@ -25,15 +27,18 @@ export class ChatbotCompletion {
 	private executor: AgentExecutor | undefined;
 	private openai_api_key: string;
 	private model_name;
+	private verbose: boolean;
 
 	constructor(
 		openai_api_key: string,
+		verbose: boolean,
 		{
 			openai_model = DEFAULT_MODEL
 		}: {
 			openai_model?: string;
 		}
 	) {
+		this.verbose = verbose;
 		this, (this.model_name = DEFAULT_MODEL);
 		this.openai_api_key = openai_api_key;
 		this.model = new ChatOpenAI({
@@ -69,7 +74,7 @@ export class ChatbotCompletion {
 			},
 			this.formatMessages,
 			llm,
-			this.customOutputParser
+			this.customOutputParser.bind(this)
 		]);
 		const executor = new AgentExecutor({
 			agent: runnable,
@@ -100,11 +105,20 @@ export class ChatbotCompletion {
 			SUFFIX.replace('{input}', values.input),
 			agentScratchpad
 		].join('');
+		if (this.verbose){
+			console.log(colors.fg.green, "Model prompt: ", colors.style.reset);
+			console.log(colors.fg.blue, formatted, colors.style.reset);
+			console.log("\n");
+		}
 		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
 		if (content.includes('Final Answer:')) {
+			if (this.verbose){
+				console.log(colors.fg.red, "Model response: ", colors.style.reset);
+				console.log(colors.fg.yellow, content, colors.style.reset);
+			}
 			const parts = content.split('Final Answer:');
 			const input = parts[parts.length - 1].trim();
 			const finalAnswers = { output: input };
@@ -115,8 +129,11 @@ export class ChatbotCompletion {
 			console.warn('Could not parse output');
 			console.warn(text);
 			process.exit(42);
+		}	
+		if (this.verbose){
+			console.log(colors.fg.red, "Model response: ", colors.style.reset);
+			console.log(colors.fg.yellow, content, colors.style.reset);
 		}
-
 		return {
 			tool: match[1].trim(),
 			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
@@ -130,8 +147,6 @@ export class ChatbotCompletion {
 			throw new Error('Setup was not called');
 		}
 		const result = await this.executor.invoke({ input: input });
-
-		console.log(result.output);
 		return result.output;
 	}
 }

@@ -5,9 +5,10 @@ import { ChatbotCompletion } from '$lib';
 export async function POST(params: { request: Request }) {
 	const { chatHistory, input } = await params.request.json();
 
-	const completion_manager = new ChatbotCompletion(import.meta.env.VITE_OPENAI_API_KEY!, {
+	const completion_manager = new ChatbotCompletion(import.meta.env.VITE_OPENAI_API_KEY!, true, {
 		openai_model: import.meta.env.VITE_OPENAI_MODEL_NAME!
 	});
+	// ChatbotCompletion(openaikey, verbose, {model_name})
 	await completion_manager.setup();
 
 	const output = await completion_manager.query(chatHistory, input);
