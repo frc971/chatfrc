@@ -6,19 +6,32 @@ ChatFRC is a chatbot built on GPT-3.5, designed to be a helpful resource for FIR
 
 ## Development Quick Start
 
-To run the app you’ll need to install pnpm, to do this follow [their install guide](https://pnpm.io/installation)
-
-Then install the dependencies in the project with `pnpm install`
-
-To run the app run `pnpm run dev`
-
-To run the completion locally you’ll need an OpenAPIAPI Key. The key can be used by placing it inside of a `.env` file
+To run the completion locally you’ll need an OpenAI API Key. The key can be used by placing it inside of `.env`
 
 ```bash
-OPENAI_API_KEY=""
+VITE_OPENAI_API_KEY=""
+
+# You can also provide a custom OpenAI model endpoint
+VITE_OPENAI_MODEL_NAME=""
 ```
 
-You’ll also need to set up a Qdrant server, see their [installation instructions](https://qdrant.tech/documentation/guides/installation/).
+### Node
+
+To run the app you’ll need to install pnpm, to do this follow their [install guide](https://pnpm.io/installation).
+
+The app can be started with:
+
+```bash
+pnpm i && pnpm run dev
+```
+
+You’ll also need to set up a Qdrant server for vector retrieval, see their [installation instructions](https://qdrant.tech/documentation/guides/installation/).
+
+### Docker
+
+The app can also be run with docker-compose using `docker compose build` and `docker compose up`.
+
+Installation instructions for docker compose can be found [here](https://docs.docker.com/compose/install/)
 
 ## Contributing
 
