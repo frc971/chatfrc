@@ -16,13 +16,11 @@ import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
 import { PREFIX, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
-import { collapseDocs } from 'langchain/chains/combine_documents/reduce';
 import { colors } from './colors';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 export class ChatbotCompletion {
-	private model: ChatOpenAI;
 	private embeddings_model: OpenAIEmbeddings;
 	private executor: AgentExecutor | undefined;
 	private openai_api_key: string;
@@ -39,15 +37,8 @@ export class ChatbotCompletion {
 		}
 	) {
 		this.verbose = verbose;
-		this, (this.model_name = DEFAULT_MODEL);
+		this.model_name = openai_model;
 		this.openai_api_key = openai_api_key;
-		this.model = new ChatOpenAI({
-			openAIApiKey: openai_api_key,
-			temperature: 0.0,
-			modelName: openai_model,
-			verbose: false,
-			stop: ['\nObservation']
-		});
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
@@ -58,8 +49,9 @@ export class ChatbotCompletion {
 
 	public async setup() {
 		const tools = getTools();
-		const llm = new ChatOpenAI({
-			modelName: 'gpt-3.5-turbo',
+		const model = new ChatOpenAI({
+			openAIApiKey: this.openai_api_key,
+			modelName: this.model_name,
 			temperature: 0,
 			stop: ['\nObservation']
 		});
@@ -73,7 +65,7 @@ export class ChatbotCompletion {
 				}
 			},
 			this.formatMessages,
-			llm,
+			model,
 			this.customOutputParser.bind(this)
 		]);
 		const executor = new AgentExecutor({
@@ -105,18 +97,18 @@ export class ChatbotCompletion {
 			SUFFIX.replace('{input}', values.input),
 			agentScratchpad
 		].join('');
-		if (this.verbose){
-			console.log(colors.fg.green, "Model prompt: ", colors.style.reset);
+		if (this.verbose) {
+			console.log(colors.fg.green, 'Model prompt: ', colors.style.reset);
 			console.log(colors.fg.blue, formatted, colors.style.reset);
-			console.log("\n");
+			console.log('\n');
 		}
 		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
 		if (content.includes('Final Answer:')) {
-			if (this.verbose){
-				console.log(colors.fg.red, "Model response: ", colors.style.reset);
+			if (this.verbose) {
+				console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 				console.log(colors.fg.yellow, content, colors.style.reset);
 			}
 			const parts = content.split('Final Answer:');
@@ -129,9 +121,9 @@ export class ChatbotCompletion {
 			console.warn('Could not parse output');
 			console.warn(text);
 			process.exit(42);
-		}	
-		if (this.verbose){
-			console.log(colors.fg.red, "Model response: ", colors.style.reset);
+		}
+		if (this.verbose) {
+			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 			console.log(colors.fg.yellow, content, colors.style.reset);
 		}
 		return {
