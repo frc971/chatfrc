@@ -52,6 +52,9 @@ export class ChatbotCompletion {
 		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
 		this.collection_name = collection_name;
 		this.executor = undefined;
+		if (openai_api_key == undefined) {
+			throw console.warn('OPENAI_API_KEY is undefined');
+		}
 	}
 
 	public async setup() {

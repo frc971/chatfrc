@@ -10,7 +10,6 @@ function getTools(
 	embeddings: OpenAIEmbeddings
 ) {
 	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
-		import.meta.env.VITE_SERPAPI_API_KEY = 'no_key';
 		throw console.warn('SERPAPI_API_KEY is undefined');
 	}
 	const tools = [
