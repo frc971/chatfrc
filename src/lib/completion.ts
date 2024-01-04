@@ -29,11 +29,12 @@ export class ChatbotCompletion {
 
 	constructor(
 		openai_api_key: string,
-		verbose: boolean,
 		{
-			openai_model = DEFAULT_MODEL
+			openai_model = DEFAULT_MODEL,
+			verbose = false
 		}: {
 			openai_model?: string;
+			verbose?: boolean;
 		}
 	) {
 		this.verbose = verbose;

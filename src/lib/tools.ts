@@ -1,9 +1,8 @@
 import { SerpAPI } from 'langchain/tools';
 import { Calculator } from 'langchain/tools/calculator';
-import { DynamicTool, DynamicStructuredTool } from 'langchain/tools';
+import { DynamicTool } from 'langchain/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import { z } from 'zod';
 
 function getTools() {
 	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
