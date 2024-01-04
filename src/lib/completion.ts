@@ -157,7 +157,12 @@ export class ChatbotCompletion {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public async query(history: ChatHistory[], input: any): Promise<any> {
 		if (this.executor == undefined) {
-			throw new Error('Setup was not called');
+			console.warn("ChatbotCompletion's setup was not called, calling setup");
+			this.setup();
+			if (this.executor == undefined){
+				console.warn("setup failed");
+				return "Error";
+			}
 		}
 		this.history = history;
 		const result = await this.executor.invoke({ input: input });
