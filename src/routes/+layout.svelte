@@ -16,6 +16,9 @@
 		<li class="text-gray-600 text-lg hover:text-blue-600">
 			<a href="/">Chatbot</a>
 		</li>
+		<li class="text-gray-600 text-lg hover:text-blue-600">
+			<a href="/about">About</a>
+		</li>
 	</ul>
 </nav>
 
