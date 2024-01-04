@@ -1,3 +1,3 @@
 pnpm lint:fix
-pnpm i build
-pnpm run build
+pnpm i
+pnpm run check
