@@ -14,7 +14,7 @@ import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
-import { PREFIX, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
+import { PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
 import { colors } from './colors';
 
@@ -28,6 +28,7 @@ export class ChatbotCompletion {
 	private verbose: boolean;
 	private qdrantClient: QdrantClient;
 	private collection_name: string;
+	private history: ChatHistory[];
 
 	constructor(
 		openai_api_key: string,
@@ -52,6 +53,7 @@ export class ChatbotCompletion {
 		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
 		this.collection_name = collection_name;
 		this.executor = undefined;
+		this.history = [];
 		if (openai_api_key == undefined) {
 			throw console.warn('OPENAI_API_KEY is undefined');
 		}
@@ -85,6 +87,13 @@ export class ChatbotCompletion {
 		this.executor = executor;
 	}
 	private formatMessages = async (values: InputValues) => {
+		if (this.history.length != 0) this.history.pop();
+		const history =
+			this.history
+				.map((input: { type: string; content: string }) => {
+					return input.type + ': ' + input.content;
+				})
+				.join('\n') + '\n';
 		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model); //to do seperate function for this
 		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
@@ -103,6 +112,8 @@ export class ChatbotCompletion {
 		const formatted = [
 			PREFIX,
 			toolString,
+			HISTORY,
+			history,
 			TOOL_INSTRUCTIONS_TEMPLATE.replace('{tool_names}', toolNames),
 			SUFFIX.replace('{input}', values.input),
 			agentScratchpad
@@ -148,6 +159,7 @@ export class ChatbotCompletion {
 		if (this.executor == undefined) {
 			throw new Error('Setup was not called');
 		}
+		this.history = history;
 		const result = await this.executor.invoke({ input: input });
 		return result.output;
 	}

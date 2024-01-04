@@ -1,5 +1,6 @@
 const PREFIX = `Answer the following questions as best you can. You have access to the following tools:
 `;
+const HISTORY = `Here is the chat history: \n`;
 const TOOL_INSTRUCTIONS_TEMPLATE = `Use the following format in your response:
 Question: the input question you must answer
 Thought: you should always think about what to do
@@ -14,4 +15,4 @@ const SUFFIX = `Begin!
 Question: {input}
 Thought:`;
 
-export { PREFIX, TOOL_INSTRUCTIONS_TEMPLATE, SUFFIX };
+export { PREFIX, HISTORY, TOOL_INSTRUCTIONS_TEMPLATE, SUFFIX };
