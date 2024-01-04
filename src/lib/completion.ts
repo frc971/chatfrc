@@ -140,8 +140,9 @@ export class ChatbotCompletion {
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
 		if (match == null) {
 			console.warn('Could not parse output');
-			console.warn(text);
-			process.exit(42);
+			console.warn(content);
+			const finalAnswers = { output: content };
+			return { log: content, returnValues: finalAnswers };
 		}
 		if (this.verbose) {
 			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
