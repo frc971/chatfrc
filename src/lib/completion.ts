@@ -1,131 +1,172 @@
-import { Document } from 'langchain/document';
-
+//https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from 'langchain/schema';
-
-import { ChatHistoryType, type ChatHistory } from '$lib/history';
-import { BytesOutputParser } from 'langchain/schema/output_parser';
-
+import {
+	type AgentAction,
+	type AgentFinish,
+	HumanMessage,
+	type InputValues,
+	type AgentStep,
+	AIMessageChunk
+} from 'langchain/schema';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { type ChatHistory } from '$lib/history';
+import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
+import { RunnableSequence } from 'langchain/schema/runnable';
+import { AgentExecutor } from 'langchain/agents';
+import { PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
+import { getTools } from './tools';
+import { colors } from './colors';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
-
 export class ChatbotCompletion {
-	private model: ChatOpenAI;
 	private embeddings_model: OpenAIEmbeddings;
-
-	private qdrant_client: QdrantClient;
-	private qdrant_collection: string;
+	private executor: AgentExecutor | undefined;
+	private openai_api_key: string;
+	private model_name;
+	private verbose: boolean;
+	private qdrantClient: QdrantClient;
+	private collection_name: string;
+	private history: ChatHistory[];
 
 	constructor(
 		openai_api_key: string,
 		{
 			openai_model = DEFAULT_MODEL,
-			qdrant_collection = DEFAULT_COLLECTION
+			collection_name = DEFAULT_COLLECTION,
+			verbose = false
 		}: {
 			openai_model?: string;
-			qdrant_collection?: string;
+			collection_name?: string;
+			verbose?: boolean;
 		}
 	) {
-		this.model = new ChatOpenAI({
-			openAIApiKey: openai_api_key,
-			temperature: 0.7,
-			streaming: true,
-			maxTokens: 250,
-			modelName: openai_model,
-			verbose: true
-		});
+		this.verbose = verbose;
+		this.model_name = openai_model;
+		this.openai_api_key = openai_api_key;
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
-		this.qdrant_client = new QdrantClient({
-			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
-		});
-
-		this.qdrant_collection = qdrant_collection;
+		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
+		this.collection_name = collection_name;
+		this.executor = undefined;
+		this.history = [];
+		if (openai_api_key == undefined) {
+			throw console.warn('OPENAI_API_KEY is undefined');
+		}
 	}
 
-	/*
-        We need to pass with_vector to qdrant to get our response
-    */
-	private async qdrant_similarity_search(query: string, k: number): Promise<Document[]> {
-		const query_embedding = await this.embeddings_model.embedQuery(query);
-		const qdrant_results = await this.qdrant_client.search(this.qdrant_collection, {
-			vector: query_embedding,
-			limit: k,
-			with_vector: true
+	public async setup() {
+		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model);
+		const model = new ChatOpenAI({
+			openAIApiKey: this.openai_api_key,
+			modelName: this.model_name,
+			temperature: 0,
+			stop: ['\nObservation']
 		});
-
-		console.log(qdrant_results);
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return qdrant_results.map((result: any) => {
-			return new Document({
-				pageContent: result.payload.pageContent,
-				metadata: result.payload.metadata
-			});
+		const runnable = RunnableSequence.from([
+			{
+				input: (values: InputValues) => {
+					return values.input;
+				},
+				intermediate_steps: (values: InputValues) => {
+					return values.steps;
+				}
+			},
+			this.formatMessages,
+			model,
+			this.customOutputParser.bind(this)
+		]);
+		const executor = new AgentExecutor({
+			agent: runnable,
+			tools: tools
 		});
+		this.executor = executor;
 	}
+	private formatMessages = async (values: InputValues) => {
+		if (this.history.length != 0) this.history.pop();
+		const history =
+			this.history
+				.map((input: { type: string; content: string }) => {
+					return input.type + ': ' + input.content;
+				})
+				.join('\n') + '\n';
+		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model); //to do seperate function for this
+		const intermediateSteps = values.intermediate_steps
+			? (values.intermediate_steps as Array<AgentStep>)
+			: [];
+		const agentScratchpad = formatLogToString(intermediateSteps);
+		let toolString = '';
+		let toolNames = '';
+		for (let i = 0; i < tools.length; i++) {
+			toolString += '\n' + tools[i].name + ': ' + tools[i].description;
+			toolNames += tools[i].name + ', ';
+		}
+		toolNames = toolNames.slice(0, -1);
+		toolNames = toolNames.slice(0, -1);
+		toolString += '\n\n';
 
-	private async get_vector_response(query: string): Promise<string[]> {
-		console.log('Retrieving vector response from qdrant...');
-
-		const vector_response = await this.qdrant_similarity_search(query, 2);
-
-		console.log(vector_response);
-
-		console.log('Vector response retreived');
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return vector_response.map((document: Document<Record<string, any>>) => {
-			return document.pageContent;
-		});
-	}
-
-	private generate_history(history: ChatHistory[]): BaseMessage[] {
-		return history.map((message: { content: string; type: ChatHistoryType }) => {
-			if (message.type == ChatHistoryType.AI) {
-				return new AIMessage({ content: message.content });
-			} else {
-				return new HumanMessage({ content: message.content });
+		const formatted = [
+			PREFIX,
+			toolString,
+			HISTORY,
+			history,
+			TOOL_INSTRUCTIONS_TEMPLATE.replace('{tool_names}', toolNames),
+			SUFFIX.replace('{input}', values.input),
+			agentScratchpad
+		].join('');
+		if (this.verbose) {
+			console.log(colors.fg.green, 'Model prompt: ', colors.style.reset);
+			console.log(colors.fg.blue, formatted, colors.style.reset);
+			console.log('\n');
+		}
+		return [new HumanMessage(formatted)];
+	};
+	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
+		const content = text.lc_kwargs.content;
+		if (content.includes('Final Answer:')) {
+			if (this.verbose) {
+				console.log(colors.fg.red, 'Model response: ', colors.style.reset);
+				console.log(colors.fg.yellow, content, colors.style.reset);
 			}
-		});
+			const parts = content.split('Final Answer:');
+			const input = parts[parts.length - 1].trim();
+			const finalAnswers = { output: input };
+			return { log: content, returnValues: finalAnswers };
+		}
+		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
+		if (match == null) {
+			console.warn('Could not parse output');
+			console.warn(content);
+			const finalAnswers = { output: content };
+			return { log: content, returnValues: finalAnswers };
+		}
+		if (this.verbose) {
+			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
+			console.log(colors.fg.yellow, content, colors.style.reset);
+		}
+		return {
+			tool: match[1].trim(),
+			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
+			log: content
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async query(history: ChatHistory[]): Promise<any> {
-		const vector_response = await this.get_vector_response(history[history.length - 1].content);
-
-		const context = vector_response.map((content: string) => {
-			return new SystemMessage({ content });
-		});
-
-		if (context.length == 0) {
-			context.push(
-				new SystemMessage({
-					content:
-						'You dont have data on this content, you may want to respond with "sorry I cannot answer that as I do not have enough information"'
-				})
-			);
+	public async query(history: ChatHistory[], input: any): Promise<any> {
+		if (this.executor == undefined) {
+			console.warn("ChatbotCompletion's setup was not called, calling setup");
+			this.setup();
+			if (this.executor == undefined){
+				console.warn("setup failed");
+				return "Error";
+			}
 		}
-
-		const chat_history = [
-			new SystemMessage({
-				content: `You are a kind, professional, understanding, and enthusiastic
-                    assistant that is an expert in mechanical, electrical, and software engineering, but most importantly FIRST robotics
-                    and helping all levels of frc robotics teams. Avoiding repeating the same information and useless statements.
-                    The current date is ${new Date()}.`
-			}),
-			...context,
-			...this.generate_history(history)
-		];
-
-		// TODO(max): Add history pruning based on token length
-
-		return await this.model.pipe(new BytesOutputParser()).stream(chat_history);
+		this.history = history;
+		const result = await this.executor.invoke({ input: input });
+		return result.output;
 	}
 }
