@@ -9,7 +9,7 @@ import {
 	type AgentStep,
 	AIMessageChunk
 } from 'langchain/schema';
-
+import { QdrantClient } from '@qdrant/js-client-rest';
 import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
@@ -19,21 +19,25 @@ import { getTools } from './tools';
 import { colors } from './colors';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
-
+const DEFAULT_COLLECTION = 'default';
 export class ChatbotCompletion {
 	private embeddings_model: OpenAIEmbeddings;
 	private executor: AgentExecutor | undefined;
 	private openai_api_key: string;
 	private model_name;
 	private verbose: boolean;
+	private qdrantClient: QdrantClient;
+	private collection_name: string;
 
 	constructor(
 		openai_api_key: string,
 		{
 			openai_model = DEFAULT_MODEL,
+			collection_name = DEFAULT_COLLECTION,
 			verbose = false
 		}: {
 			openai_model?: string;
+			collection_name?: string;
 			verbose?: boolean;
 		}
 	) {
@@ -45,11 +49,13 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
+		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
+		this.collection_name = collection_name;
 		this.executor = undefined;
 	}
 
 	public async setup() {
-		const tools = getTools();
+		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model);
 		const model = new ChatOpenAI({
 			openAIApiKey: this.openai_api_key,
 			modelName: this.model_name,
@@ -76,7 +82,7 @@ export class ChatbotCompletion {
 		this.executor = executor;
 	}
 	private formatMessages = async (values: InputValues) => {
-		const tools = getTools();
+		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model); //to do seperate function for this
 		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
 			: [];
