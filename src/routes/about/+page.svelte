@@ -1,5 +1,5 @@
 <script lang="ts">
-	import about_text from './AboutText';
+	import about_text from '$lib/about_text';
 </script>
 
 <div class="m-auto justify-center w-2/3 h-full mt-20">
