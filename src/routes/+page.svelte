@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Message from './Message.svelte';
-	import Warning from './Warning.svelte';
+	import Message from '$lib/components/Message.svelte';
+	import Warning from '$lib/components/Warning.svelte';
 
 	import { ChatHistoryType } from '$lib/history';
 	import { streamAsyncIterator } from '$lib/iterable_stream';
