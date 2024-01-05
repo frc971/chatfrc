@@ -7,9 +7,6 @@
 	<Icon src={ExclamationCircle} class="w-8 h-8" />
 	<span>
 		<h2 class="font-bold">Warning:</h2>
-		<p>
-			this is still a work in progress and many of the AI's responses may be very untruthful or
-			inaccurate.
-		</p>
+		<p>ChatFRC is still a work in progress and some responses may be inaccurate.</p>
 	</span>
 </div>
