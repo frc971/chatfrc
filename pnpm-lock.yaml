@@ -17,6 +17,9 @@ dependencies:
   '@steeze-ui/svelte-icon':
     specifier: ^1.5.0
     version: 1.5.0(svelte@4.2.8)
+  '@types/gtag.js':
+    specifier: ^0.0.18
+    version: 0.0.18
   langchain:
     specifier: ^0.0.198
     version: 0.0.198(@qdrant/js-client-rest@1.7.0)
@@ -959,6 +962,10 @@ packages:
 
   /@types/estree@1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
+
+  /@types/gtag.js@0.0.18:
+    resolution: {integrity: sha512-GJxnIvuXuVhKaHfsOdzGipoOoXq72y3mdcncc9h6i6E7nlz89zBEj2wrLM7bqO5Xk9Lm2B94MwdQsSwRlaPSWw==}
+    dev: false
 
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
