@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Message from './Message.svelte';
+	import Warning from './Warning.svelte';
 
 	import { ChatHistoryType } from '$lib/history';
 	import { streamAsyncIterator } from '$lib/iterable_stream';
@@ -90,6 +91,8 @@
 			<Message {type} {content} />
 		{/each}
 	</div>
+
+	<Warning />
 
 	<form
 		class="shadow-2xl border-2 focus:border-gray-950 rounded-3xl flex flex-row md:w-2/3 sm:w-full space-x-2 m-4 p-2"
