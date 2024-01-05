@@ -92,7 +92,9 @@
 		{/each}
 	</div>
 
-	<Warning />
+	{#if history.length == 0}
+		<Warning />
+	{/if}
 
 	<form
 		class="shadow-2xl border-2 focus:border-gray-950 rounded-3xl flex flex-row md:w-2/3 sm:w-full space-x-2 m-4 p-2"
