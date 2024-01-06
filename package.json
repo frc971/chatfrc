@@ -1,6 +1,6 @@
 {
 	"name": "chatfrc",
-	"version": "0.0.1",
+	"version": "v1.0.0",
 	"private": true,
 	"scripts": {
 		"preinstall": "npx only-allow pnpm",
