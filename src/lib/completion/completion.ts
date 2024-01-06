@@ -76,7 +76,7 @@ export class ChatbotCompletion {
 	private async get_vector_response(query: string): Promise<string[]> {
 		console.log('Retrieving vector response from qdrant...');
 
-		const vector_response = await this.qdrant_similarity_search(query, 2);
+		const vector_response = await this.qdrant_similarity_search(query, 3);
 
 		console.log(vector_response);
 
@@ -84,7 +84,7 @@ export class ChatbotCompletion {
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		return vector_response.map((document: Document<Record<string, any>>) => {
-			return document.pageContent;
+			return `${document.pageContent} + SOURCE: ${document.metadata.source}`;
 		});
 	}
 
