@@ -4,5 +4,5 @@
  */
 
 export default `
-ChatFRC is a chatbot specializing in topics related to First Robotics. It is currently in the process of development, and we will continue training it to improve accuracy. We hope you find the chatbot fun and useful! - FRC 971
+ChatFRC is a chatbot specializing in topics related to FIRST Robotics. It is currently in the process of development, and we will continue training it to improve accuracy. We hope you find the chatbot fun and useful! - FRC 971
 `;
