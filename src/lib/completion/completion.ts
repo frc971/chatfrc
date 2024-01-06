@@ -11,7 +11,7 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 
 import { default as SYSTEM_PROMPT_TEXT } from './system_prompt';
 
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+const DEFAULT_MODEL = 'gpt-4-1106-preview';
 const DEFAULT_COLLECTION = 'default';
 
 export class ChatbotCompletion {
@@ -35,7 +35,7 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			temperature: 0.7,
 			streaming: true,
-			maxTokens: 250,
+			maxTokens: 500,
 			modelName: openai_model,
 			verbose: true
 		});
