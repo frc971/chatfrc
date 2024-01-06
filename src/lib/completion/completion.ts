@@ -59,7 +59,8 @@ export class ChatbotCompletion {
 		const qdrant_results = await this.qdrant_client.search(this.qdrant_collection, {
 			vector: query_embedding,
 			limit: k,
-			with_vector: true
+			with_vector: true,
+			score_threshold: 0.7
 		});
 
 		console.log(qdrant_results);
