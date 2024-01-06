@@ -9,7 +9,9 @@ import { BytesOutputParser } from 'langchain/schema/output_parser';
 
 import { QdrantClient } from '@qdrant/js-client-rest';
 
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+import { default as SYSTEM_PROMPT_TEXT } from './system_prompt';
+
+const DEFAULT_MODEL = 'gpt-4-1106-preview';
 const DEFAULT_COLLECTION = 'default';
 
 export class ChatbotCompletion {
@@ -33,7 +35,7 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			temperature: 0.7,
 			streaming: true,
-			maxTokens: 250,
+			maxTokens: 500,
 			modelName: openai_model,
 			verbose: true
 		});
@@ -115,10 +117,7 @@ export class ChatbotCompletion {
 
 		const chat_history = [
 			new SystemMessage({
-				content: `You are a kind, professional, understanding, and enthusiastic
-                    assistant that is an expert in mechanical, electrical, and software engineering, but most importantly FIRST robotics
-                    and helping all levels of frc robotics teams. Avoiding repeating the same information and useless statements.
-                    The current date is ${new Date()}.`
+				content: SYSTEM_PROMPT_TEXT
 			}),
 			...context,
 			...this.generate_history(history)
