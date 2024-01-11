@@ -29,17 +29,20 @@ export class ChatbotCompletion {
 	private qdrantClient: QdrantClient;
 	private collection_name: string;
 	private history: ChatHistory[];
+	private do_history : boolean;
 
 	constructor(
 		openai_api_key: string,
 		{
 			openai_model = DEFAULT_MODEL,
 			collection_name = DEFAULT_COLLECTION,
-			verbose = false
+			verbose = false,
+			do_history = true,
 		}: {
 			openai_model?: string;
 			collection_name?: string;
 			verbose?: boolean;
+			do_history?: boolean;
 		}
 	) {
 		this.verbose = verbose;
@@ -54,6 +57,7 @@ export class ChatbotCompletion {
 		this.collection_name = collection_name;
 		this.executor = undefined;
 		this.history = [];
+		this.do_history = do_history;
 		if (openai_api_key == undefined) {
 			throw console.warn('OPENAI_API_KEY is undefined');
 		}
@@ -165,7 +169,7 @@ export class ChatbotCompletion {
 				return "Error";
 			}
 		}
-		this.history = history;
+		if (this.do_history) this.history = history;
 		const result = await this.executor.invoke({ input: input });
 		return result.output;
 	}
