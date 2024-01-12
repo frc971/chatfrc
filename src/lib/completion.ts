@@ -17,6 +17,7 @@ import { AgentExecutor } from 'langchain/agents';
 import { PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
 import { colors } from './colors';
+import fs from 'fs'
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
@@ -30,6 +31,8 @@ export class ChatbotCompletion {
 	private collection_name: string;
 	private history: ChatHistory[];
 	private do_history : boolean;
+	private generate_data: boolean;
+	private chain: String[];
 
 	constructor(
 		openai_api_key: string,
@@ -38,11 +41,13 @@ export class ChatbotCompletion {
 			collection_name = DEFAULT_COLLECTION,
 			verbose = false,
 			do_history = true,
+			generate_data = true,
 		}: {
 			openai_model?: string;
 			collection_name?: string;
 			verbose?: boolean;
 			do_history?: boolean;
+			generate_data?: boolean;
 		}
 	) {
 		this.verbose = verbose;
@@ -58,6 +63,8 @@ export class ChatbotCompletion {
 		this.executor = undefined;
 		this.history = [];
 		this.do_history = do_history;
+		this.generate_data = generate_data;
+		this.chain = []
 		if (openai_api_key == undefined) {
 			throw console.warn('OPENAI_API_KEY is undefined');
 		}
@@ -127,6 +134,7 @@ export class ChatbotCompletion {
 			console.log(colors.fg.blue, formatted, colors.style.reset);
 			console.log('\n');
 		}
+		this.chain.push(JSON.stringify({ "user": formatted }));
 		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
@@ -136,6 +144,7 @@ export class ChatbotCompletion {
 				console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 				console.log(colors.fg.yellow, content, colors.style.reset);
 			}
+			this.chain.push(JSON.stringify({ "chatbot": content }));
 			const parts = content.split('Final Answer:');
 			const input = parts[parts.length - 1].trim();
 			const finalAnswers = { output: input };
@@ -143,6 +152,8 @@ export class ChatbotCompletion {
 		}
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
 		if (match == null) {
+			// this.chain.slice(-1, 1);
+			this.chain.push(JSON.stringify({ "chatbot": content }));
 			console.warn('Could not parse output');
 			console.warn(content);
 			const finalAnswers = { output: content };
@@ -152,6 +163,7 @@ export class ChatbotCompletion {
 			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 			console.log(colors.fg.yellow, content, colors.style.reset);
 		}
+		this.chain.push(JSON.stringify({ "chatbot": content }));
 		return {
 			tool: match[1].trim(),
 			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
@@ -171,6 +183,8 @@ export class ChatbotCompletion {
 		}
 		if (this.do_history) this.history = history;
 		const result = await this.executor.invoke({ input: input });
+		console.log(this.chain);
+		if (this.generate_data) fs.writeFile('scripts/logs/' + input + '.jsonl', this.chain.join("\n"), (err) => { if (err) throw err; }) 
 		return result.output;
 	}
 }
