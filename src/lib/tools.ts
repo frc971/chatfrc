@@ -27,11 +27,11 @@ function getTools(
 				return output;
 			}
 		}),
-		new SerpAPI(import.meta.env.VITE_SERPAPI_API_KEY, {
-			location: 'Austin,Texas,United States',
-			hl: 'en',
-			gl: 'us'
-		}),
+		// new SerpAPI(import.meta.env.VITE_SERPAPI_API_KEY, {
+		// 	location: 'Austin,Texas,United States',
+		// 	hl: 'en',
+		// 	gl: 'us'
+		// }),
 		new Calculator()
 	];
 	return tools;
