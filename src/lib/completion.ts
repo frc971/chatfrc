@@ -5,6 +5,7 @@ import {
 	type AgentAction,
 	type AgentFinish,
 	HumanMessage,
+	SystemMessage,
 	type InputValues,
 	type AgentStep,
 	AIMessageChunk
@@ -14,7 +15,7 @@ import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
-import { PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
+import { SYSTEM, PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
 import { colors } from './colors';
 import fs from 'fs'
@@ -73,7 +74,7 @@ export class ChatbotCompletion {
 	public async setup() {
 		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model);
 		const model = new ChatOpenAI({
-			openAIApiKey: this.openai_api_key,
+			// openAIApiKey: this.openai_api_key,
 			modelName: this.model_name,
 			temperature: 0,
 			stop: ['\nObservation']
@@ -119,13 +120,11 @@ export class ChatbotCompletion {
 		toolNames = toolNames.slice(0, -1);
 		toolNames = toolNames.slice(0, -1);
 		toolString += '\n\n';
+		const system = SYSTEM.replace('{tool_names}', toolNames).replace('{tools}', toolString);
 
 		const formatted = [
-			PREFIX,
-			toolString,
 			HISTORY,
 			history,
-			TOOL_INSTRUCTIONS_TEMPLATE.replace('{tool_names}', toolNames),
 			SUFFIX.replace('{input}', values.input),
 			agentScratchpad
 		].join('');
@@ -135,7 +134,8 @@ export class ChatbotCompletion {
 			console.log('\n');
 		}
 		this.chain.push(JSON.stringify({ "user": formatted }));
-		return [new HumanMessage(formatted)];
+		console.log(formatted, system)
+		return [new SystemMessage(system), new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
