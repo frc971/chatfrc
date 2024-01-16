@@ -16,7 +16,7 @@ function getTools(
 		new DynamicTool({
 			//for testing remove when merge
 			name: 'FRC971Database',
-			description: 'useful to get information about FRC971. Input should be a search query.',
+			description: 'Useful to get information about FRC971. Input should be a search query. The same search query will return the same result',
 			func: async (query: string) => {
 				const embedding = await embeddings.embedQuery(query);
 				const response = await qdrantClient.search(collection_name, {

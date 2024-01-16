@@ -123,6 +123,7 @@ export class ChatbotCompletion {
 		const system = SYSTEM.replace('{tool_names}', toolNames).replace('{tools}', toolString);
 
 		const formatted = [
+			system,
 			HISTORY,
 			history,
 			SUFFIX.replace('{input}', values.input),
@@ -134,8 +135,7 @@ export class ChatbotCompletion {
 			console.log('\n');
 		}
 		this.chain.push(JSON.stringify({ "user": formatted }));
-		console.log(formatted, system)
-		return [new SystemMessage(system), new HumanMessage(formatted)];
+		return [ new HumanMessage(formatted) ];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
