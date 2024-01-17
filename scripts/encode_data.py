@@ -49,7 +49,7 @@ class CustomDataLoader:
         for file in self.files:
             name, _ = os.path.splitext(file) 
 
-            if name == "data/links":
+            if name == "documents/links":
                 continue
             
             if self.thread:
@@ -60,7 +60,7 @@ class CustomDataLoader:
 
     def save(self) -> None:
         print(len(self.documents))
-        np.save('data.npy', np.asarray(self.documents, dtype=object))
+        np.save('documents.npy', np.asarray(self.documents, dtype=object))
     
     
     def _generate_child_docs(self, parent_document):
@@ -120,7 +120,7 @@ class CustomDataLoader:
 
 
     def _load_files(self) -> None:
-        for root, _, files in os.walk('data/'):
+        for root, _, files in os.walk('documents/'):
             for filename in files:
                 full_path = os.path.join(root, filename)
                 name, extension = os.path.splitext(full_path) 
@@ -130,7 +130,7 @@ class CustomDataLoader:
                         pass
                     case _:
                         # Links is a special case, its where we load arbitrary html
-                        if (name != "data/links"):
+                        if (name != "documents/links"):
                             continue
 
                 self.files.append(full_path)
