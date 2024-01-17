@@ -18,7 +18,8 @@ import { AgentExecutor } from 'langchain/agents';
 import { SYSTEM, PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
 import { getTools } from './tools';
 import { colors } from './colors';
-import fs from 'fs'
+import fs from 'fs';
+import { OpenAI } from 'langchain/llms/openai';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
@@ -31,9 +32,10 @@ export class ChatbotCompletion {
 	private qdrantClient: QdrantClient;
 	private collection_name: string;
 	private history: ChatHistory[];
-	private do_history : boolean;
+	private do_history: boolean;
 	private generate_data: boolean;
-	private chain: String[];
+	private chain: string[];
+	private summaryBot: OpenAI;
 
 	constructor(
 		openai_api_key: string,
@@ -42,7 +44,7 @@ export class ChatbotCompletion {
 			collection_name = DEFAULT_COLLECTION,
 			verbose = false,
 			do_history = true,
-			generate_data = true,
+			generate_data = true
 		}: {
 			openai_model?: string;
 			collection_name?: string;
@@ -59,20 +61,29 @@ export class ChatbotCompletion {
 			// openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
+		this.summaryBot = new OpenAI({
+			modelName: this.model_name,
+			temperature: 0.0
+		});
 		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
 		this.collection_name = collection_name;
 		this.executor = undefined;
 		this.history = [];
 		this.do_history = do_history;
 		this.generate_data = generate_data;
-		this.chain = []
+		this.chain = [];
 		if (openai_api_key == undefined) {
 			throw console.warn('OPENAI_API_KEY is undefined');
 		}
 	}
 
 	public async setup() {
-		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model);
+		const tools = getTools(
+			this.qdrantClient,
+			this.collection_name,
+			this.embeddings_model,
+			this.summaryBot
+		);
 		const model = new ChatOpenAI({
 			// openAIApiKey: this.openai_api_key,
 			modelName: this.model_name,
@@ -106,7 +117,12 @@ export class ChatbotCompletion {
 					return input.type + ': ' + input.content;
 				})
 				.join('\n') + '\n';
-		const tools = getTools(this.qdrantClient, this.collection_name, this.embeddings_model); //to do seperate function for this
+		const tools = getTools(
+			this.qdrantClient,
+			this.collection_name,
+			this.embeddings_model,
+			this.summaryBot
+		); //to do seperate function for this
 		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
 			: [];
@@ -134,8 +150,8 @@ export class ChatbotCompletion {
 			console.log(colors.fg.blue, formatted, colors.style.reset);
 			console.log('\n');
 		}
-		this.chain.push(JSON.stringify({ "user": formatted }));
-		return [ new HumanMessage(formatted) ];
+		this.chain.push(JSON.stringify({ user: formatted }));
+		return [new HumanMessage(formatted)];
 	};
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
@@ -144,7 +160,7 @@ export class ChatbotCompletion {
 				console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 				console.log(colors.fg.yellow, content, colors.style.reset);
 			}
-			this.chain.push(JSON.stringify({ "chatbot": content }));
+			this.chain.push(JSON.stringify({ chatbot: content }));
 			const parts = content.split('Final Answer:');
 			const input = parts[parts.length - 1].trim();
 			const finalAnswers = { output: input };
@@ -153,7 +169,7 @@ export class ChatbotCompletion {
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
 		if (match == null) {
 			// this.chain.slice(-1, 1);
-			this.chain.push(JSON.stringify({ "chatbot": content }));
+			this.chain.push(JSON.stringify({ chatbot: content }));
 			console.warn('Could not parse output');
 			console.warn(content);
 			const finalAnswers = { output: content };
@@ -163,7 +179,7 @@ export class ChatbotCompletion {
 			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
 			console.log(colors.fg.yellow, content, colors.style.reset);
 		}
-		this.chain.push(JSON.stringify({ "chatbot": content }));
+		this.chain.push(JSON.stringify({ chatbot: content }));
 		return {
 			tool: match[1].trim(),
 			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
@@ -176,15 +192,18 @@ export class ChatbotCompletion {
 		if (this.executor == undefined) {
 			console.warn("ChatbotCompletion's setup was not called, calling setup");
 			this.setup();
-			if (this.executor == undefined){
-				console.warn("setup failed");
-				return "Error";
+			if (this.executor == undefined) {
+				console.warn('setup failed');
+				return 'Error';
 			}
 		}
 		if (this.do_history) this.history = history;
 		const result = await this.executor.invoke({ input: input });
 		console.log(this.chain);
-		if (this.generate_data) fs.writeFile('scripts/logs/' + input + '.jsonl', this.chain.join("\n"), (err) => { if (err) throw err; }) 
+		if (this.generate_data)
+			fs.writeFile('scripts/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
+				if (err) throw err;
+			});
 		return result.output;
 	}
 }

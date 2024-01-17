@@ -3,11 +3,14 @@ import { Calculator } from 'langchain/tools/calculator';
 import { DynamicTool } from 'langchain/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
+import type { OpenAI } from 'langchain/llms/openai';
+import { SUMMARY } from './prompt';
 
 function getTools(
 	qdrantClient: QdrantClient,
 	collection_name: string,
-	embeddings: OpenAIEmbeddings
+	embeddings: OpenAIEmbeddings,
+	summaryBot: OpenAI
 ) {
 	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
 		throw console.warn('SERPAPI_API_KEY is undefined');
@@ -16,13 +19,21 @@ function getTools(
 		new DynamicTool({
 			//for testing remove when merge
 			name: 'FRC971Database',
-			description: 'Useful to get information about FRC971. Input should be a search query. The same search query will return the same result',
+			description:
+				'Useful to get information about FRC971. Input should be a search query. The same search query will return the same result',
 			func: async (query: string) => {
 				const embedding = await embeddings.embedQuery(query);
 				const response = await qdrantClient.search(collection_name, {
 					vector: embedding,
-					limit: 1
-				});
+					limit: 3
+				}); //strResponse bad name
+				const strResponse = response
+					.map((response) => response.payload!.pageContent as string)
+					.join('\n');
+				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
+				console.log(prompt);
+				console.log(await summaryBot.call('What is 1 + 1'));
+				process.exit(0);
 				const output: string = response[0].payload!.pageContent as string;
 				return output;
 			}

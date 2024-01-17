@@ -6,7 +6,7 @@ Action Input: the input to the action
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat N times)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question\n\n`
+Final Answer: the final answer to the original input question\n\n`;
 const PREFIX = `Answer the following questions as best you can. You have access to the following tools:
 `;
 const HISTORY = `Here is the chat history: \n`;
@@ -21,5 +21,8 @@ Final Answer: the final answer to the original input question\n\n`;
 const SUFFIX = `Begin!
 
 Question: {input}`;
+const SUMMARY = `Please summaraize the information in the text that is relavant to the question:
+<question> {question} <question>
+<text> {text} <text>`;
 
-export { SYSTEM, PREFIX, HISTORY, TOOL_INSTRUCTIONS_TEMPLATE, SUFFIX };
+export { SYSTEM, PREFIX, HISTORY, TOOL_INSTRUCTIONS_TEMPLATE, SUFFIX, SUMMARY };
