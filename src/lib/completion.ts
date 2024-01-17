@@ -56,7 +56,7 @@ export class ChatbotCompletion {
 		this.openai_api_key = openai_api_key;
 
 		this.embeddings_model = new OpenAIEmbeddings({
-			openAIApiKey: openai_api_key,
+			// openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
 		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });

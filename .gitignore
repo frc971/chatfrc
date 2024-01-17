@@ -16,3 +16,6 @@ scripts/logs
 scripts/train.jsonl
 scripts/playground.ipynb
 scripts/data
+scripts/documents
+scripts/docs
+scripts/documents.npy
