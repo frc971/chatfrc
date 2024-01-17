@@ -17,13 +17,31 @@ function getTools(
 	}
 	const tools = [
 		new DynamicTool({
-			//for testing remove when merge
-			name: 'FRC971Database',
+			name: 'FRC971',
 			description:
-				'Useful to get information about FRC971. Input should be a search query. The same search query will return the same result',
+				'Useful to get information about The robotics team FRC971. Input should be a search query. The same search query will return the same result',
 			func: async (query: string) => {
 				const embedding = await embeddings.embedQuery(query);
-				const response = await qdrantClient.search(collection_name, {
+				const response = await qdrantClient.search('FRC971', {
+					vector: embedding,
+					limit: 3
+				}); //strResponse bad name
+				const strResponse = response
+					.map((response) => response.payload!.pageContent as string)
+					.join('\n');
+				console.log(strResponse)
+				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
+				return (await summaryBot.call(prompt))
+			}
+		}),
+		new DynamicTool({
+			//for testing remove when merge
+			name: 'FIRSTAwards',
+			description:
+				'Useful to get information about FIRST Awards. Input should be a search query. The same search query will return the same result',
+			func: async (query: string) => {
+				const embedding = await embeddings.embedQuery(query);
+				const response = await qdrantClient.search('FIRSTAwards', {
 					vector: embedding,
 					limit: 3
 				}); //strResponse bad name
@@ -31,11 +49,7 @@ function getTools(
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				console.log(prompt);
-				console.log(await summaryBot.call('What is 1 + 1'));
-				process.exit(0);
-				const output: string = response[0].payload!.pageContent as string;
-				return output;
+				return (await summaryBot.call(prompt))
 			}
 		}),
 		// new SerpAPI(import.meta.env.VITE_SERPAPI_API_KEY, {
