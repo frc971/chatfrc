@@ -5,7 +5,6 @@ import {
 	type AgentAction,
 	type AgentFinish,
 	HumanMessage,
-	SystemMessage,
 	type InputValues,
 	type AgentStep,
 	AIMessageChunk
@@ -15,7 +14,7 @@ import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
-import { SYSTEM, PREFIX, HISTORY, SUFFIX, TOOL_INSTRUCTIONS_TEMPLATE } from './prompt';
+import { SYSTEM, HISTORY, SUFFIX } from './prompt';
 import { getTools } from './tools';
 import { colors } from './colors';
 import fs from 'fs';
@@ -58,10 +57,11 @@ export class ChatbotCompletion {
 		this.openai_api_key = openai_api_key;
 
 		this.embeddings_model = new OpenAIEmbeddings({
-			// openAIApiKey: openai_api_key,
+			openAIApiKey: openai_api_key,
 			modelName: 'text-embedding-ada-002'
 		});
 		this.summaryBot = new OpenAI({
+			openAIApiKey: openai_api_key,
 			modelName: this.model_name,
 			temperature: 0.0
 		});
@@ -85,9 +85,9 @@ export class ChatbotCompletion {
 			this.summaryBot
 		);
 		const model = new ChatOpenAI({
-			// openAIApiKey: this.openai_api_key,
+			openAIApiKey: this.openai_api_key,
 			modelName: this.model_name,
-			temperature: 0,
+			temperature: 0.0,
 			stop: ['\nObservation']
 		});
 		const runnable = RunnableSequence.from([

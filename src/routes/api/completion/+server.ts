@@ -8,7 +8,8 @@ export async function POST(params: { request: Request }) {
 	const completion_manager = new ChatbotCompletion(import.meta.env.VITE_OPENAI_API_KEY!, {
 		openai_model: import.meta.env.VITE_OPENAI_MODEL_NAME!,
 		verbose: true,
-		do_history: true
+		do_history: true,
+		generate_data: true
 	});
 	// ChatbotCompletion(openaikey, verbose, {model_name})
 	await completion_manager.setup();

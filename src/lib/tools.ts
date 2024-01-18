@@ -1,4 +1,3 @@
-import { SerpAPI } from 'langchain/tools';
 import { Calculator } from 'langchain/tools/calculator';
 import { DynamicTool } from 'langchain/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
@@ -29,9 +28,9 @@ function getTools(
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
-				console.log(strResponse)
+				console.log(strResponse);
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				return (await summaryBot.call(prompt))
+				return await summaryBot.call(prompt);
 			}
 		}),
 		new DynamicTool({
@@ -49,7 +48,7 @@ function getTools(
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				return (await summaryBot.call(prompt))
+				return await summaryBot.call(prompt);
 			}
 		}),
 		// new SerpAPI(import.meta.env.VITE_SERPAPI_API_KEY, {
