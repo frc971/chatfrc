@@ -13,7 +13,7 @@ def main():
                              vectors_config=models.VectorParams(
                                  size=1536, distance=models.Distance.COSINE))
 
-    data = np.load('documents.npy', allow_pickle=True)
+    data = np.load('../data/documents.npy', allow_pickle=True)
 
     for i, item in enumerate(data):
         print('\r',

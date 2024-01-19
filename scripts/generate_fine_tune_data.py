@@ -2,7 +2,7 @@
 
 import os
 import json
-PATH = 'data'
+PATH = '../data/fine_tune'
 
 data = []
 for path in os.listdir(PATH):
@@ -28,15 +28,12 @@ train_test_split = 0.8
 split_index = round(len(formatted_data) * train_test_split)
 train = formatted_data[:split_index]
 valid = formatted_data[split_index:]
-print(train)
-print(valid)
-print(formatted_data)
 
 train = "\n".join(train)
 valid = "\n".join(valid)
 
-file = open("train.jsonl", "w") 
+file = open("../data/train.jsonl", "w") 
 file.write(train)
 
-file = open("valid.jsonl", "w")
+file = open("../data/valid.jsonl", "w")
 file.write(valid)

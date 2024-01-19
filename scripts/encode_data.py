@@ -60,7 +60,7 @@ class CustomDataLoader:
 
     def save(self) -> None:
         print(len(self.documents))
-        np.save('documents.npy', np.asarray(self.documents, dtype=object))
+        np.save('../data/documents.npy', np.asarray(self.documents, dtype=object))
     
     
     def _generate_child_docs(self, parent_document):
@@ -120,7 +120,7 @@ class CustomDataLoader:
 
 
     def _load_files(self) -> None:
-        for root, _, files in os.walk('documents/'):
+        for root, _, files in os.walk('../data/documents/'):
             for filename in files:
                 full_path = os.path.join(root, filename)
                 name, extension = os.path.splitext(full_path) 
