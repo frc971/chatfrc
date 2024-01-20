@@ -9,7 +9,8 @@ function getTools(
 	qdrantClient: QdrantClient,
 	collection_name: string,
 	embeddings: OpenAIEmbeddings,
-	summaryBot: OpenAI
+	summaryBot: OpenAI,
+	do_summaryBot: boolean,
 ) {
 	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
 		throw console.warn('SERPAPI_API_KEY is undefined');
@@ -30,7 +31,8 @@ function getTools(
 					.join('\n');
 				console.log(strResponse);
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				return await summaryBot.call(prompt);
+				if (do_summaryBot) return await summaryBot.call(prompt);
+				return strResponse;
 			}
 		}),
 		new DynamicTool({
