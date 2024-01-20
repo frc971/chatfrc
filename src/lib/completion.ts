@@ -45,7 +45,7 @@ export class ChatbotCompletion {
 			verbose = false,
 			do_history = true,
 			generate_data = false,
-			do_summaryBot = true,
+			do_summaryBot = true
 		}: {
 			openai_model?: string;
 			collection_name?: string;
@@ -87,7 +87,7 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.do_summaryBot,
+			this.do_summaryBot
 		);
 		const model = new ChatOpenAI({
 			openAIApiKey: this.openai_api_key,
@@ -127,7 +127,7 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.do_summaryBot,
+			this.do_summaryBot
 		); //to do seperate function for this
 		const intermediateSteps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)

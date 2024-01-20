@@ -10,7 +10,7 @@ function getTools(
 	collection_name: string,
 	embeddings: OpenAIEmbeddings,
 	summaryBot: OpenAI,
-	do_summaryBot: boolean,
+	do_summaryBot: boolean
 ) {
 	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
 		throw console.warn('SERPAPI_API_KEY is undefined');
