@@ -19,17 +19,16 @@ function getTools(
 		new DynamicTool({
 			name: 'FRC971',
 			description:
-				'Useful to get information about The robotics team FRC971. Input should be a search query. The same search query will return the same result',
+				'Useful to get information about The robotics team FRC971. Input should be a search query. Do not use the same search query twice',
 			func: async (query: string) => {
 				const embedding = await embeddings.embedQuery(query);
 				const response = await qdrantClient.search('FRC971', {
 					vector: embedding,
 					limit: 3
-				}); //strResponse bad name
+				});
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
-				console.log(strResponse);
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
 				if (do_summaryBot) return await summaryBot.call(prompt);
 				return strResponse;
