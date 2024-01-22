@@ -82,6 +82,8 @@ export class ChatbotCompletion {
 	}
 
 	public async setup() {
+		console.log(colors.fg.cyan, 'Model name: ' + this.model_name, colors.style.reset);
+		console.log('\n');
 		const tools = getTools(
 			this.qdrantClient,
 			this.collection_name,
