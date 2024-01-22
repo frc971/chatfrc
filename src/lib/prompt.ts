@@ -21,9 +21,9 @@ Final Answer: the final answer to the original input question. The user only see
 const SUFFIX = `Begin!
 
 Question: {input}\n`;
-const SUMMARY = `Please cut out the information not relavant to the question
+const SUMMARY = `Please answer the following question with following the context
 <question> {question} <question>
-<text> {text} <text>
+<context> {text} <context>
 Response: `;
 
 export { SYSTEM, PREFIX, HISTORY, TOOL_INSTRUCTIONS_TEMPLATE, SUFFIX, SUMMARY };
