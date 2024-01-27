@@ -207,7 +207,6 @@ export class ChatbotCompletion {
 		}
 		if (this.do_history) this.history = history;
 		const result = await this.executor.invoke({ input: input });
-		console.log(this.chain);
 		if (this.generate_data)
 			fs.writeFile('data/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
 				if (err) throw err;

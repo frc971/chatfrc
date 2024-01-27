@@ -10,9 +10,8 @@ export async function POST(params: { request: Request }) {
 		verbose: false,
 		do_history: true,
 		generate_data: false,
-		do_summaryBot: true
+		do_summaryBot: true,
 	});
-	// ChatbotCompletion(openaikey, verbose, {model_name})
 	await completion_manager.setup();
 
 	const output = await completion_manager.query(chatHistory, input);
