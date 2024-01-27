@@ -2,6 +2,7 @@
 
 import os
 import json
+
 PATH = '../data/fine_tune'
 
 data = []
@@ -13,13 +14,18 @@ for path in os.listdir(PATH):
 formatted_data = []
 for i in range(0, len(data), 2):
     user = data[i]
-    chatbot = data[i+1]
+    chatbot = data[i + 1]
     message = {
-        "messages": [
-            {"role": "system", "content": ""},
-            {"role": "user", "content": user},
-            {"role": "assistant", "content": chatbot}
-        ]
+        "messages": [{
+            "role": "system",
+            "content": ""
+        }, {
+            "role": "user",
+            "content": user
+        }, {
+            "role": "assistant",
+            "content": chatbot
+        }]
     }
     message = json.dumps(message)
     formatted_data.append(message)
