@@ -10,7 +10,7 @@ export async function POST(params: { request: Request }) {
 		verbose: false,
 		do_history: true,
 		generate_data: false,
-		do_summaryBot: true,
+		do_summaryBot: true
 	});
 	await completion_manager.setup();
 
