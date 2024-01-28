@@ -209,7 +209,7 @@ export class ChatbotCompletion {
 		const result = await this.executor.invoke({ input: input });
 		if (this.generate_data)
 			fs.writeFile('data/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
-				if (err) throw err;
+				if (err) console.warn('failed to write to logs'); //logs folder probably missing or wrong path
 			});
 		return result.output;
 	}
