@@ -131,10 +131,10 @@ export class ChatbotCompletion {
 			this.summaryBot,
 			this.do_summaryBot
 		); //to do seperate function for this
-		const intermediateSteps = values.intermediate_steps
+		const intermediate_steps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
 			: [];
-		const agentScratchpad = formatLogToString(intermediateSteps);
+		const agentScratchpad = formatLogToString(intermediate_steps);
 		let toolString = '';
 		let toolNames = '';
 		for (let i = 0; i < tools.length; i++) {
