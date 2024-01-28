@@ -33,7 +33,7 @@ export class ChatbotCompletion {
 	private history: ChatHistory[];
 	private do_history: boolean;
 	private generate_data: boolean;
-	private chain: string[];
+	private chain: string[]; //used for loging the react process; each element is either the chatbot's response or the prompt
 	private summaryBot: OpenAI;
 	private use_summarybot: boolean;
 
