@@ -4,13 +4,12 @@
 
 import os
 import threading
-from langchain.document_loaders.base import BaseLoader
 
 import numpy as np
 from dotenv import load_dotenv
 
-from langchain.document_loaders import DirectoryLoader, TextLoader, UnstructuredPDFLoader, UnstructuredRSTLoader, UnstructuredMarkdownLoader
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.document_loaders import TextLoader, UnstructuredPDFLoader, UnstructuredRSTLoader, UnstructuredMarkdownLoader
+from langchain_openai.embeddings import OpenAIEmbeddings
 
 from langchain.text_splitter import TokenTextSplitter
 
