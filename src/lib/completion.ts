@@ -35,7 +35,7 @@ export class ChatbotCompletion {
 	private generate_data: boolean;
 	private chain: string[];
 	private summaryBot: OpenAI;
-	private do_summaryBot: boolean;
+	private use_summarybot: boolean;
 
 	constructor(
 		openai_api_key: string,
@@ -45,14 +45,14 @@ export class ChatbotCompletion {
 			verbose = false,
 			do_history = true,
 			generate_data = false,
-			do_summaryBot = true
+			use_summarybot = true
 		}: {
 			openai_model?: string;
 			collection_name?: string;
 			verbose?: boolean;
 			do_history?: boolean;
 			generate_data?: boolean;
-			do_summaryBot?: boolean;
+			use_summarybot?: boolean;
 		}
 	) {
 		this.verbose = verbose;
@@ -68,7 +68,7 @@ export class ChatbotCompletion {
 			modelName: this.model_name,
 			temperature: 0.0
 		});
-		this.do_summaryBot = do_summaryBot;
+		this.use_summarybot = use_summarybot;
 		this.qdrant_client = new QdrantClient({ host: 'localhost', port: 6333 });
 		this.collection_name = collection_name;
 		this.executor = undefined;
@@ -89,7 +89,7 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.do_summaryBot
+			this.use_summarybot
 		);
 		const model = new ChatOpenAI({
 			openAIApiKey: this.openai_api_key,
@@ -129,7 +129,7 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.do_summaryBot
+			this.use_summarybot
 		); //to do seperate function for this
 		const intermediate_steps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)
