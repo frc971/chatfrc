@@ -36,6 +36,7 @@ export class ChatbotCompletion {
 	private chain: string[]; //used for loging the react process; each element is either the chatbot's response or the prompt
 	private summaryBot: OpenAI;
 	private use_summarybot: boolean;
+	private model: ChatOpenAI;
 
 	constructor(
 		openai_api_key: string,
@@ -79,6 +80,12 @@ export class ChatbotCompletion {
 		if (openai_api_key == undefined) {
 			throw console.warn('OPENAI_API_KEY is undefined');
 		}
+		this.model = new ChatOpenAI({
+			openAIApiKey: this.openai_api_key,
+			modelName: this.model_name,
+			temperature: 0.0,
+			stop: ['\nObservation']
+		});
 	}
 
 	public async setup() {
@@ -91,12 +98,6 @@ export class ChatbotCompletion {
 			this.summaryBot,
 			this.use_summarybot
 		);
-		const model = new ChatOpenAI({
-			openAIApiKey: this.openai_api_key,
-			modelName: this.model_name,
-			temperature: 0.0,
-			stop: ['\nObservation']
-		});
 		const runnable = RunnableSequence.from([
 			{
 				input: (values: InputValues) => {
@@ -107,7 +108,7 @@ export class ChatbotCompletion {
 				}
 			},
 			this.formatMessages,
-			model,
+			this.model,
 			this.customOutputParser.bind(this)
 		]);
 		const executor = new AgentExecutor({
