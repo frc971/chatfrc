@@ -2,7 +2,11 @@ openai
 numpy
 tiktoken
 pypdf
+
 langchain
+langchain-community
+langchain-openai
+
 python-dotenv
 unstructured
 unstructured[pdf]
