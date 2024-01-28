@@ -28,7 +28,7 @@ export class ChatbotCompletion {
 	private openai_api_key: string;
 	private model_name;
 	private verbose: boolean;
-	private qdrantClient: QdrantClient;
+	private qdrant_client: QdrantClient;
 	private collection_name: string;
 	private history: ChatHistory[];
 	private do_history: boolean;
@@ -69,7 +69,7 @@ export class ChatbotCompletion {
 			temperature: 0.0
 		});
 		this.do_summaryBot = do_summaryBot;
-		this.qdrantClient = new QdrantClient({ host: 'localhost', port: 6333 });
+		this.qdrant_client = new QdrantClient({ host: 'localhost', port: 6333 });
 		this.collection_name = collection_name;
 		this.executor = undefined;
 		this.history = [];
@@ -85,7 +85,7 @@ export class ChatbotCompletion {
 		console.log(colors.fg.cyan, 'Model name: ' + this.model_name, colors.style.reset);
 		console.log('\n');
 		const tools = getTools(
-			this.qdrantClient,
+			this.qdrant_client,
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
@@ -125,7 +125,7 @@ export class ChatbotCompletion {
 				})
 				.join('\n') + '\n';
 		const tools = getTools(
-			this.qdrantClient,
+			this.qdrant_client,
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
