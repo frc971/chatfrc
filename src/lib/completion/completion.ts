@@ -1,11 +1,11 @@
-import { Document } from 'langchain/document';
+import { Document } from '@langchain/core/documents';
 
 import { ChatOpenAI } from '@langchain/openai';
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from 'langchain/schema';
+import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from '@langchain/core/messages';
 
 import { ChatHistoryType, type ChatHistory } from '$lib/history';
-import { BytesOutputParser } from 'langchain/schema/output_parser';
+import { BytesOutputParser } from '@langchain/core/output_parsers';
 
 import { QdrantClient } from '@qdrant/js-client-rest';
 
