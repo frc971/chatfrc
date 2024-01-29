@@ -11,7 +11,7 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 
 import { default as SYSTEM_PROMPT_TEXT } from './system_prompt';
 
-const DEFAULT_MODEL = 'gpt-4-1106-preview';
+const DEFAULT_MODEL = 'gpt-4-turbo-preview';
 const DEFAULT_COLLECTION = 'default';
 
 export class ChatbotCompletion {
