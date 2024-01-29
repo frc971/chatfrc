@@ -12,9 +12,6 @@ function getTools(
 	summaryBot: OpenAI,
 	do_summaryBot: boolean
 ) {
-	if (import.meta.env.VITE_SERPAPI_API_KEY == undefined) {
-		throw console.warn('SERPAPI_API_KEY is undefined');
-	}
 	const tools = [
 		new DynamicTool({
 			name: 'FRC971',
