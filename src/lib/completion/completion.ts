@@ -42,7 +42,7 @@ export class ChatbotCompletion {
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
-			modelName: 'text-embedding-ada-002'
+			modelName: 'text-embedding-3-small'
 		});
 		this.qdrant_client = new QdrantClient({
 			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
