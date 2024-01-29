@@ -52,12 +52,6 @@ function getTools(
 				return await summaryBot.call(prompt);
 			}
 		}),
-		// new SerpAPI(import.meta.env.VITE_SERPAPI_API_KEY, {
-		// 	location: 'Austin,Texas,United States',
-		// 	hl: 'en',
-		// 	gl: 'us'
-		// }),
-		new Calculator()
 	];
 	return tools;
 }
