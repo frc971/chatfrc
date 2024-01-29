@@ -107,7 +107,7 @@ export class ChatbotCompletion {
 					return values.steps;
 				}
 			},
-			this.formatMessages,
+			this.promptBuilder,
 			this.model,
 			this.customOutputParser.bind(this)
 		]);
@@ -117,7 +117,13 @@ export class ChatbotCompletion {
 		});
 		this.executor = executor;
 	}
-	private formatMessages = async (values: InputValues) => {
+	private promptBuilder = async (values: InputValues) => {
+		`
+		Takes in InputValues, which consists of the model's intermedediate steps which includes 
+		the output of tools and format it into the prompt for the model. 
+
+		Link to docs: https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
+		`;
 		if (this.history.length != 0) this.history.pop();
 		const history =
 			this.history
