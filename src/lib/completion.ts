@@ -31,7 +31,7 @@ export class ChatbotCompletion {
 	private qdrant_client: QdrantClient;
 	private collection_name: string;
 	private history: ChatHistory[];
-	private use_history: boolean;//controls if the model see the history of the chat or not
+	private use_history: boolean; //controls if the model see the history of the chat or not
 	private generate_data: boolean;
 	private chain: string[]; //used for loging the react process; each element is either the chatbot's response or the prompt
 	private summaryBot: OpenAI;
@@ -117,7 +117,7 @@ export class ChatbotCompletion {
 		});
 		this.executor = executor;
 	}
-	private async promptBuilder (values: InputValues) {
+	private async promptBuilder(values: InputValues) {
 		`
 		Takes in InputValues, which consists of the model's intermedediate steps which includes 
 		the output of tools and format it into the prompt for the model. 
@@ -168,7 +168,7 @@ export class ChatbotCompletion {
 		}
 		this.chain.push(JSON.stringify({ user: formatted }));
 		return [new HumanMessage(formatted)];
-	};
+	}
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
 		if (content.includes('Final Answer:')) {

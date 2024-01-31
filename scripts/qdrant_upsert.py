@@ -4,9 +4,10 @@ from qdrant_client import QdrantClient
 
 from qdrant_client.http import models
 
+
 def qdrant_upsert(path, collection_name, port=6333):
     client = QdrantClient("0.0.0.0", port=port)
-    try: 
+    try:
         client.delete_collection(collection_name=collection_name)
     except:
         pass
@@ -34,9 +35,11 @@ def qdrant_upsert(path, collection_name, port=6333):
                                              vector=item['vector'])
                       ])
 
+
 def main():
     qdrant_upsert('../data/documents/FRC971.npy', 'FRC971')
     qdrant_upsert('../data/documents/FIRSTAwards.npy', 'FIRSTAwards')
+
 
 if __name__ == '__main__':
     main()

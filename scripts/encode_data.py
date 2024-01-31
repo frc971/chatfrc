@@ -75,8 +75,7 @@ class CustomDataLoader:
 
     def save(self) -> None:
         print(len(self.documents))
-        np.save(self.output_path,
-                np.asarray(self.documents, dtype=object))
+        np.save(self.output_path, np.asarray(self.documents, dtype=object))
 
     def _generate_child_docs(self, parent_document):
         child_docs = self.child_splitter.split_documents([parent_document])
@@ -151,15 +150,15 @@ def main():
         multiple filetypes better and can check embeddings against pinecone.
     """
 
-    loader = CustomDataLoader('../data/documents/FRC971/', '../data/documents/FRC971.npy')
+    loader = CustomDataLoader('../data/documents/FRC971/',
+                              '../data/documents/FRC971.npy')
     loader.embed_documents()
     loader.save()
 
-    loader = CustomDataLoader('../data/documents/FIRSTAwards/', '../data/documents/FIRSTAwards.npy')
+    loader = CustomDataLoader('../data/documents/FIRSTAwards/',
+                              '../data/documents/FIRSTAwards.npy')
     loader.embed_documents()
     loader.save()
-
-
 
 
 if __name__ == "__main__":
