@@ -31,7 +31,6 @@ function getTools(
 			}
 		}),
 		new DynamicTool({
-			//for testing remove when merge
 			name: 'FIRSTAwards',
 			description:
 				'Useful to get information about FIRST Awards. Input should be a search query. The same search query will return the same result',
@@ -40,7 +39,7 @@ function getTools(
 				const response = await qdrantClient.search('FIRSTAwards', {
 					vector: embedding,
 					limit: 3
-				}); //strResponse bad name
+				});
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');

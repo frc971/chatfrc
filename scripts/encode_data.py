@@ -18,6 +18,8 @@ from langchain.text_splitter import TokenTextSplitter
 class CustomDataLoader:
 
     def __init__(self,
+                 path,
+                 output_path,
                  chunk_size=500,
                  parent_chunk_size=1000,
                  child_chunk_size=100,
@@ -51,6 +53,10 @@ class CustomDataLoader:
 
         self.semaphore = threading.Semaphore(3)
 
+        self.path = path
+
+        self.output_path = output_path
+
     def embed_documents(self) -> None:
         self._load_files()
 
@@ -69,7 +75,7 @@ class CustomDataLoader:
 
     def save(self) -> None:
         print(len(self.documents))
-        np.save('../data/documents.npy',
+        np.save(self.output_path,
                 np.asarray(self.documents, dtype=object))
 
     def _generate_child_docs(self, parent_document):
@@ -121,7 +127,7 @@ class CustomDataLoader:
         self.semaphore.release()
 
     def _load_files(self) -> None:
-        for root, _, files in os.walk('../data/documents/'):
+        for root, _, files in os.walk(self.path):
             for filename in files:
                 full_path = os.path.join(root, filename)
                 name, extension = os.path.splitext(full_path)
@@ -145,11 +151,15 @@ def main():
         multiple filetypes better and can check embeddings against pinecone.
     """
 
-    loader = CustomDataLoader()
-
+    loader = CustomDataLoader('../data/documents/FRC971/', '../data/documents/FRC971.npy')
     loader.embed_documents()
-
     loader.save()
+
+    loader = CustomDataLoader('../data/documents/FIRSTAwards/', '../data/documents/FIRSTAwards.npy')
+    loader.embed_documents()
+    loader.save()
+
+
 
 
 if __name__ == "__main__":
