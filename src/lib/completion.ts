@@ -107,7 +107,7 @@ export class ChatbotCompletion {
 					return values.steps;
 				}
 			},
-			this.promptBuilder,
+			this.promptBuilder.bind(this),
 			this.model,
 			this.customOutputParser.bind(this)
 		]);
@@ -117,7 +117,7 @@ export class ChatbotCompletion {
 		});
 		this.executor = executor;
 	}
-	private promptBuilder = async (values: InputValues) => {
+	private async promptBuilder (values: InputValues) {
 		`
 		Takes in InputValues, which consists of the model's intermedediate steps which includes 
 		the output of tools and format it into the prompt for the model. 
