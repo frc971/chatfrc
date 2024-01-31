@@ -161,6 +161,7 @@ export class ChatbotCompletion {
 			agentScratchpad
 		].join('');
 		if (this.verbose) {
+			console.log(colors.fg.white, 'Time: ' + new Date(), colors.style.reset);
 			console.log(colors.fg.green, 'Model prompt: ', colors.style.reset);
 			console.log(colors.fg.blue, formatted, colors.style.reset);
 			console.log('\n');
