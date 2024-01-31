@@ -1,4 +1,3 @@
-import { Calculator } from 'langchain/tools/calculator';
 import { DynamicTool } from 'langchain/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
@@ -48,7 +47,7 @@ function getTools(
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
 				return await summaryBot.call(prompt);
 			}
-		}),
+		})
 	];
 	return tools;
 }

@@ -183,7 +183,6 @@ export class ChatbotCompletion {
 		}
 		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
 		if (match == null) {
-			// this.chain.slice(-1, 1);
 			this.chain.push(JSON.stringify({ chatbot: content }));
 			console.warn('Could not parse output');
 			console.warn(content);

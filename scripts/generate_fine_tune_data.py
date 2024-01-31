@@ -1,5 +1,3 @@
-# bad name
-
 import os
 import json
 
