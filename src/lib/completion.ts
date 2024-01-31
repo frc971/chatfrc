@@ -31,7 +31,7 @@ export class ChatbotCompletion {
 	private qdrant_client: QdrantClient;
 	private collection_name: string;
 	private history: ChatHistory[];
-	private do_history: boolean;
+	private use_history: boolean;//controls if the model see the history of the chat or not
 	private generate_data: boolean;
 	private chain: string[]; //used for loging the react process; each element is either the chatbot's response or the prompt
 	private summaryBot: OpenAI;
@@ -74,7 +74,7 @@ export class ChatbotCompletion {
 		this.collection_name = collection_name;
 		this.executor = undefined;
 		this.history = [];
-		this.do_history = do_history;
+		this.use_history = do_history;
 		this.generate_data = generate_data;
 		this.chain = [];
 		if (openai_api_key == undefined) {
@@ -211,7 +211,7 @@ export class ChatbotCompletion {
 				return 'Error';
 			}
 		}
-		if (this.do_history) this.history = history;
+		if (this.use_history) this.history = history;
 		const result = await this.executor.invoke({ input: input });
 		if (this.generate_data)
 			fs.writeFile('data/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
