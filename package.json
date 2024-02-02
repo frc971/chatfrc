@@ -1,6 +1,6 @@
 {
 	"name": "chatfrc",
-	"version": "0.0.1",
+	"version": "v1.0.0",
 	"private": true,
 	"scripts": {
 		"preinstall": "npx only-allow pnpm",
@@ -15,6 +15,7 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-node": "^2.0.0",
+		"@sveltejs/enhanced-img": "^0.1.7",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^6.15.0",

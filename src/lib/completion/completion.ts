@@ -14,9 +14,9 @@ import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { AgentExecutor } from 'langchain/agents';
-import { SYSTEM, HISTORY, SUFFIX } from './prompt';
-import { getTools } from './tools';
-import { colors } from './colors';
+import { SYSTEM, HISTORY, SUFFIX } from '../prompt';
+import { getTools } from '../tools';
+import { colors } from '../colors';
 import fs from 'fs';
 import { OpenAI } from 'langchain/llms/openai';
 

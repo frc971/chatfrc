@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Message from './Message.svelte';
+	import Message from '$lib/components/Message.svelte';
+	import Warning from '$lib/components/Warning.svelte';
 
 	import { ChatHistoryType } from '$lib/history';
 	import type { ChatHistory } from '$lib/history';
@@ -66,9 +67,17 @@
 	};
 </script>
 
-<div
-	class="flex flex-col-reverse flex-1 justify-between items-center w-full h-full overflow-x-clip"
->
+<div class="flex flex-col flex-1 justify-between items-center w-full h-full overflow-x-clip">
+	<div class="mt-10 w-full overflow-y-auto">
+		{#each history as { type, content }}
+			<Message {type} {content} />
+		{/each}
+	</div>
+
+	{#if history.length == 0}
+		<Warning />
+	{/if}
+
 	<form
 		class="shadow-2xl border-2 focus:border-gray-950 rounded-3xl flex flex-row md:w-2/3 sm:w-full space-x-2 m-4 p-2"
 	>
@@ -86,12 +95,6 @@
 			<Icon src={Trash} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
 		</button>
 	</form>
-
-	<div class="w-full overflow-y-auto">
-		{#each history as { type, content }}
-			<Message {type} {content} />
-		{/each}
-	</div>
 </div>
 
 <style lang="postcss">
