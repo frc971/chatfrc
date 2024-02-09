@@ -1,7 +1,7 @@
-import { DynamicTool } from 'langchain/tools';
+import { DynamicTool } from '@langchain/core/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import type { OpenAI } from 'langchain/llms/openai';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import type { OpenAI } from '@langchain/openai';
 import { SUMMARY } from './prompt';
 
 function getTools(

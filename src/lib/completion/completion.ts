@@ -1,24 +1,20 @@
 //https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import {
-	type AgentAction,
-	type AgentFinish,
-	HumanMessage,
-	type InputValues,
-	type AgentStep,
-	AIMessageChunk
-} from 'langchain/schema';
+import { ChatOpenAI } from '@langchain/openai';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { type AgentAction, type AgentFinish, type AgentStep } from '@langchain/core/agents';
+import { HumanMessage } from '@langchain/core/messages';
+import { type InputValues } from '@langchain/core/memory';
+import { AIMessageChunk } from '@langchain/core/messages';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
-import { RunnableSequence } from 'langchain/schema/runnable';
+import { RunnableSequence } from '@langchain/core/runnables';
 import { AgentExecutor } from 'langchain/agents';
 import { SYSTEM, HISTORY, SUFFIX } from '../prompt';
 import { getTools } from '../tools';
 import { colors } from '../colors';
 import fs from 'fs';
-import { OpenAI } from 'langchain/llms/openai';
+import { OpenAI } from '@langchain/openai';
 
 const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
