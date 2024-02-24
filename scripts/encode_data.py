@@ -159,6 +159,11 @@ def main():
     loader.embed_documents()
     loader.save()
 
+    loader = CustomDataLoader('../data/documents/FIRSTDocuments/',
+                              '../data/documents/FIRSTDocuments.npy')
+    loader.embed_documents()
+    loader.save()
+
 
 if __name__ == "__main__":
     main()

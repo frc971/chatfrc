@@ -39,6 +39,7 @@ def qdrant_upsert(path, collection_name, port=6333):
 def main():
     qdrant_upsert('../data/documents/FRC971.npy', 'FRC971')
     qdrant_upsert('../data/documents/FIRSTAwards.npy', 'FIRSTAwards')
+    qdrant_upsert('../data/documents/FIRSTAwards.npy', 'FIRSTDocuments')
 
 
 if __name__ == '__main__':

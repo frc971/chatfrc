@@ -2,6 +2,7 @@ import { DynamicTool } from '@langchain/core/tools';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import type { OpenAI } from '@langchain/openai';
+import { Calculator } from 'langchain/tools/calculator';
 import { SUMMARY } from './prompt';
 
 function getTools(
@@ -12,6 +13,7 @@ function getTools(
 	do_summaryBot: boolean
 ) {
 	const tools = [
+		new Calculator(),
 		new DynamicTool({
 			name: 'FRC971',
 			description:
@@ -26,14 +28,13 @@ function getTools(
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				if (do_summaryBot) return await summaryBot.call(prompt);
+				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}
 		}),
 		new DynamicTool({
 			name: 'FIRSTAwards',
-			description:
-				'Useful to get information about FIRST Awards. Input should be a search query. The same search query will return the same result',
+			description: 'A database of all the FIRST awards.',
 			func: async (query: string) => {
 				const embedding = await embeddings.embedQuery(query);
 				const response = await qdrantClient.search('FIRSTAwards', {
@@ -44,7 +45,26 @@ function getTools(
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				return await summaryBot.call(prompt);
+				if (do_summaryBot) return await summaryBot.invoke(prompt);
+				return strResponse;
+			}
+		}),
+		new DynamicTool({
+			name: 'FIRSTDocuments',
+			description:
+				'Information about the FIRST competition. Includes forms, procedure and documents about the FIRST competition',
+			func: async (query: string) => {
+				const embedding = await embeddings.embedQuery(query);
+				const response = await qdrantClient.search('FIRSTDocuments', {
+					vector: embedding,
+					limit: 3
+				});
+				const strResponse = response
+					.map((response) => response.payload!.pageContent as string)
+					.join('\n');
+				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
+				if (do_summaryBot) return await summaryBot.invoke(prompt);
+				return strResponse;
 			}
 		})
 	];

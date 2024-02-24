@@ -2,7 +2,7 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { type AgentAction, type AgentFinish, type AgentStep } from '@langchain/core/agents';
-import { HumanMessage } from '@langchain/core/messages';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { type InputValues } from '@langchain/core/memory';
 import { AIMessageChunk } from '@langchain/core/messages';
 import { QdrantClient } from '@qdrant/js-client-rest';
@@ -10,8 +10,8 @@ import { type ChatHistory } from '$lib/history';
 import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { AgentExecutor } from 'langchain/agents';
-import { SYSTEM, HISTORY, SUFFIX } from '../prompt';
-import { getTools } from '../tools';
+import { GPT3Prompt, GPT4Prompt, GPT4System } from './prompt';
+import { getTools } from './tools';
 import { colors } from '../colors';
 import fs from 'fs';
 import { OpenAI } from '@langchain/openai';
@@ -147,23 +147,31 @@ export class ChatbotCompletion {
 		toolNames = toolNames.slice(0, -1);
 		toolNames = toolNames.slice(0, -1);
 		toolString += '\n\n';
-		const system = SYSTEM.replace('{tool_names}', toolNames).replace('{tools}', toolString);
-
-		const formatted = [
-			system,
-			HISTORY,
-			history,
-			SUFFIX.replace('{input}', values.input),
-			agentScratchpad
-		].join('');
+		let template = '';
+		let system = GPT4System;
+		system = system.replace('{tool_names}', toolNames);
+		system = system.replace('{tools}', toolString);
+		// console.log(system)
+		if (this.model_name == 'gpt-4') {
+			template = GPT4Prompt;
+		} else {
+			template = GPT3Prompt;
+		}
+		template = template.replace('{input}', values.input);
+		template = template.replace('{tool_names}', toolNames);
+		template = template.replace('{tools}', toolString);
+		template = template.replace('{history}', history);
+		template = template.replace('{scratchpad}', agentScratchpad);
 		if (this.verbose) {
 			console.log(colors.fg.white, 'Time: ' + new Date(), colors.style.reset);
 			console.log(colors.fg.green, 'Model prompt: ', colors.style.reset);
-			console.log(colors.fg.blue, formatted, colors.style.reset);
+			console.log(colors.fg.blue, template, colors.style.reset);
 			console.log('\n');
 		}
-		this.chain.push(JSON.stringify({ user: formatted }));
-		return [new HumanMessage(formatted)];
+		this.chain.push(JSON.stringify({ user: template }));
+		const output = [new HumanMessage(template)];
+		if (this.model_name == 'gpt-4') output.push(new SystemMessage(system));
+		return output;
 	}
 	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
 		const content = text.lc_kwargs.content;
