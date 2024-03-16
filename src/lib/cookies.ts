@@ -1,10 +1,12 @@
-import { browser } from "$app/environment";
-import { writable } from "svelte/store";
+import { browser } from '$app/environment';
+import { writable } from 'svelte/store';
 
-export const cookies_accepted = writable<boolean>((browser && localStorage.cookies_accepted == 'true') || false);
+export const cookies_accepted = writable<boolean>(
+	(browser && localStorage.cookies_accepted == 'true') || false
+);
 
 cookies_accepted.subscribe((value: boolean) => {
-    if (!browser) return;
+	if (!browser) return;
 
-    localStorage.cookies_accepted = JSON.stringify(value);
-})
+	localStorage.cookies_accepted = JSON.stringify(value);
+});
