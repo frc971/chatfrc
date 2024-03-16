@@ -11,7 +11,7 @@
 </script>
 
 {#if visible}
-	<div class="absolute bg-black text-white bottom-1 p-4 rounded-xl w-2/3">
+	<div class="absolute bg-black bg-opacity-75 text-white bottom-1 p-4 rounded-xl w-2/3">
 		<h1 class="font-bold text-lg">Cookie Consent Banner</h1>
 		<p>We use your cookies with Google Analytics to gauge our overall usage worldwide.</p>
 		<br />
