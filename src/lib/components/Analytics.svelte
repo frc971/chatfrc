@@ -13,7 +13,8 @@
 		) {
 			window.dataLayer = window.dataLayer || [];
 
-			const gtag: Gtag.Gtag = function () {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const gtag: any = function () {
 				window.dataLayer.push(arguments);
 			};
 
