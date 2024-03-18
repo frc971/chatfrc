@@ -1,15 +1,17 @@
-import { Document } from 'langchain/document';
+import { Document } from '@langchain/core/documents';
 
-import { ChatOpenAI } from 'langchain/chat_models/openai';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
-import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from 'langchain/schema';
+import { ChatOpenAI } from '@langchain/openai';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from '@langchain/core/messages';
 
 import { ChatHistoryType, type ChatHistory } from '$lib/history';
-import { BytesOutputParser } from 'langchain/schema/output_parser';
+import { BytesOutputParser } from '@langchain/core/output_parsers';
 
 import { QdrantClient } from '@qdrant/js-client-rest';
 
-const DEFAULT_MODEL = 'gpt-3.5-turbo';
+import { default as SYSTEM_PROMPT_TEXT } from './system_prompt';
+
+const DEFAULT_MODEL = 'gpt-4-turbo-preview';
 const DEFAULT_COLLECTION = 'default';
 
 export class ChatbotCompletion {
@@ -33,14 +35,14 @@ export class ChatbotCompletion {
 			openAIApiKey: openai_api_key,
 			temperature: 0.7,
 			streaming: true,
-			maxTokens: 250,
+			maxTokens: 500,
 			modelName: openai_model,
 			verbose: true
 		});
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
-			modelName: 'text-embedding-ada-002'
+			modelName: 'text-embedding-3-small'
 		});
 		this.qdrant_client = new QdrantClient({
 			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
@@ -115,10 +117,7 @@ export class ChatbotCompletion {
 
 		const chat_history = [
 			new SystemMessage({
-				content: `You are a kind, professional, understanding, and enthusiastic
-                    assistant that is an expert in mechanical, electrical, and software engineering, but most importantly FIRST robotics
-                    and helping all levels of frc robotics teams. Avoiding repeating the same information and useless statements.
-                    The current date is ${new Date()}.`
+				content: SYSTEM_PROMPT_TEXT
 			}),
 			...context,
 			...this.generate_history(history)

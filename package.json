@@ -1,6 +1,6 @@
 {
 	"name": "chatfrc",
-	"version": "0.0.1",
+	"version": "v1.0.0",
 	"private": true,
 	"scripts": {
 		"preinstall": "npx only-allow pnpm",
@@ -14,9 +14,9 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
-		"@sveltejs/adapter-node": "^2.0.0",
+		"@sveltejs/adapter-node": "^2.1.2",
 		"@sveltejs/enhanced-img": "^0.1.7",
-		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/kit": "^2.4.3",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^6.15.0",
 		"@typescript-eslint/parser": "^6.15.0",
@@ -32,16 +32,18 @@
 		"tailwindcss": "^3.4.0",
 		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
-		"vite": "^5.0.0",
 		"@types/gtag.js": "^0.0.18"
 	},
 	"type": "module",
 	"dependencies": {
+		"@langchain/community": "^0.0.21",
+		"@langchain/core": "^0.1.18",
+		"@langchain/openai": "^0.0.13",
 		"@qdrant/js-client-rest": "^1.7.0",
 		"@steeze-ui/heroicons": "^2.2.3",
 		"@steeze-ui/icons": "^2.1.0",
 		"@steeze-ui/svelte-icon": "^1.5.0",
-		"langchain": "^0.0.198",
+		"langchain": "^0.1.9",
 		"tiktoken": "^1.0.11"
 	}
 }
