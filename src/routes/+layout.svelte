@@ -1,6 +1,9 @@
 <script>
 	import '../app.css';
+	import Analytics from '$lib/components/Analytics.svelte'
 </script>
+
+<Analytics />
 
 <nav
 	class="absolute top-0 p-2 w-full shadow-lg bg-gray-100 flex flex-1 flex-row space-x-4 justify-between pr-4 pl-4"
