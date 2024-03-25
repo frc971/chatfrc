@@ -17,7 +17,11 @@ const config = {
 		csp: {
 			mode: 'hash',
 			directives: {
-				'script-src': ['self', 'https://www.googletagmanager.com', 'sha256-Nu8jSZrWXyeg0ec2AX27S6zlwSHMa7iw1vgkFyCyq/U=']
+				'script-src': [
+					'self',
+					'https://www.googletagmanager.com',
+					'sha256-JamhpR7Q0uG1GWX4dSnTzLPgvjwSq5qkY01Boe+khAU='
+				]
 			}
 		}
 	}
