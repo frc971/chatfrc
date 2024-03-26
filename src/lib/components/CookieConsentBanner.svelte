@@ -27,6 +27,7 @@
 				class="bg-red-600 p-2 rounded-md"
 				on:click={() => {
 					visible = false;
+					cookies_accepted.set(false);
 				}}>Deny</button
 			>
 		</div>
