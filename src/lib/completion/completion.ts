@@ -58,7 +58,7 @@ export class ChatbotCompletion {
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
-			modelName: 'text-embedding-3-small'
+			modelName: 'text-embedding-3-large'
 		});
 		this.summaryBot = new OpenAI({
 			openAIApiKey: openai_api_key,
