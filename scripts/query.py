@@ -10,7 +10,7 @@ def main():
     client = QdrantClient("0.0.0.0", port=6333)
     openai_client = OpenAI()
 
-    model = "text-embedding-3-small"
+    model = "text-embedding-3-large"
     prompt = ""
     embeddings = openai_client.embeddings.create(input=prompt,
                                                  model=model).data[0].embedding
