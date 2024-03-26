@@ -35,7 +35,7 @@ class CustomDataLoader:
         self.do_parent_document = do_parent_document
 
         self.embeddings_model = OpenAIEmbeddings(
-            model="text-embedding-3-large", dimensions=1536)
+            model="text-embedding-3-large", dimensions=3072)
 
         self.text_splitter = TokenTextSplitter(chunk_size=chunk_size,
                                                chunk_overlap=0)

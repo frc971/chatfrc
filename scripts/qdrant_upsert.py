@@ -13,7 +13,7 @@ def qdrant_upsert(path, collection_name, port=6333):
         pass
     client.create_collection(collection_name=collection_name,
                              vectors_config=models.VectorParams(
-                                 size=1536, distance=models.Distance.COSINE))
+                                 size=3072, distance=models.Distance.EUCLID))
 
     data = np.load(path, allow_pickle=True)
 
