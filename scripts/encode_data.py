@@ -13,6 +13,10 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 
 from langchain.text_splitter import TokenTextSplitter
 
+from unstructured.cleaners.core import replace_unicode_quotes
+from unstructured.cleaners.core import clean
+from unstructured.cleaners.core import clean_extra_whitespace
+from unstructured.cleaners.core import clean_non_ascii_chars
 
 class CustomDataLoader:
 
@@ -86,6 +90,13 @@ class CustomDataLoader:
         for doc in zip(vector_responses, child_docs):
             document_map.append({"vector": doc[0], "document": doc[1]})
         return document_map
+    
+    def clean(text):
+        text = replace_unicode_quotes(text)
+        text = clean(text)
+        text = clean_extra_whitespace(text)
+        text = clean_non_ascii_chars(text)
+        return text
 
     def _process_document(self, file) -> None:
         _, extension = os.path.splitext(file)
@@ -99,9 +110,15 @@ class CustomDataLoader:
                 loader = UnstructuredRSTLoader(file)
             case ".md":
                 loader = UnstructuredMarkdownLoader(file)
+            case _:
+                print(extension)
 
-        documents = self.text_splitter.split_documents(loader.load())
-        parent_documents = self.parent_splitter.split_documents(loader.load())
+        text = loader.load()
+        for i in range(len(text)):
+            text[i].page_content = clean(text[i].page_content)
+
+        documents = self.text_splitter.split_documents(text)
+        parent_documents = self.parent_splitter.split_documents(text)
         vector_responses = self.embeddings_model.embed_documents(
             list(map(lambda document: document.page_content, documents)))
 
