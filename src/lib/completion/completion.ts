@@ -92,7 +92,8 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.use_summarybot
+			this.use_summarybot,
+			this.verbose
 		);
 		const runnable = RunnableSequence.from([
 			{
@@ -132,7 +133,8 @@ export class ChatbotCompletion {
 			this.collection_name,
 			this.embeddings_model,
 			this.summaryBot,
-			this.use_summarybot
+			this.use_summarybot,
+			this.verbose
 		); //to do seperate function for this
 		const intermediate_steps = values.intermediate_steps
 			? (values.intermediate_steps as Array<AgentStep>)

@@ -3,13 +3,15 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import type { OpenAI } from '@langchain/openai';
 import { Calculator } from 'langchain/tools/calculator';
+import { colors } from '../colors';
 
 function getTools(
 	qdrantClient: QdrantClient,
 	collection_name: string,
 	embeddings: OpenAIEmbeddings,
 	summaryBot: OpenAI,
-	do_summaryBot: boolean
+	do_summaryBot: boolean,
+	verbose: boolean
 ) {
 	const tools = [
 		new Calculator(),
@@ -30,7 +32,17 @@ function getTools(
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
+				if (verbose) {
+					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
+				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
+				if (do_summaryBot) {
+					const resopnse = await summaryBot.invoke(prompt);
+					if (verbose) {
+						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
+					}
+					return await summaryBot.invoke(prompt);
+				}
 				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}
@@ -50,9 +62,18 @@ function getTools(
 				});
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
-					.join('\n');
+					.join('\n\n');
+				if (verbose) {
+					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
+				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				if (do_summaryBot) return await summaryBot.invoke(prompt);
+				if (do_summaryBot) {
+					const resopnse = await summaryBot.invoke(prompt);
+					if (verbose) {
+						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
+					}
+					return await summaryBot.invoke(prompt);
+				}
 				return strResponse;
 			}
 		}),
@@ -73,7 +94,17 @@ function getTools(
 				const strResponse = response
 					.map((response) => response.payload!.pageContent as string)
 					.join('\n');
+				if (verbose) {
+					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
+				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
+				if (do_summaryBot) {
+					const resopnse = await summaryBot.invoke(prompt);
+					if (verbose) {
+						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
+					}
+					return await summaryBot.invoke(prompt);
+				}
 				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}
