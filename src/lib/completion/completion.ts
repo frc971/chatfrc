@@ -62,7 +62,7 @@ export class ChatbotCompletion {
 		});
 		this.summaryBot = new OpenAI({
 			openAIApiKey: openai_api_key,
-			modelName: this.model_name,
+			modelName: 'gpt-3.5-turbo',
 			temperature: 0.0
 		});
 		this.use_summarybot = use_summarybot;
@@ -109,8 +109,8 @@ export class ChatbotCompletion {
 			this.customOutputParser.bind(this)
 		]);
 		const executor = new AgentExecutor({
-			agent: runnable,
-			tools: tools
+			agent: runnable as any,
+			tools: tools as any
 		});
 		this.executor = executor;
 	}

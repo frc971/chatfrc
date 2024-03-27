@@ -54,4 +54,4 @@ Final Answer: the final answer to the original input question. The user only see
 Question: {input}
 `;
 
-export { GPT3Prompt, GPT4System, GPT4Prompt, SUMMARY };
+export { GPT3Prompt, GPT4System, GPT4Prompt };
