@@ -108,10 +108,8 @@ export class ChatbotCompletion {
 			this.model,
 			this.customOutputParser.bind(this)
 		]);
-		const executor = new AgentExecutor({
-			agent: runnable as any,
-			tools: tools as any
-		});
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const executor = new AgentExecutor({ agent: runnable as any, tools: tools as any });
 		this.executor = executor;
 	}
 	private async promptBuilder(values: InputValues) {
