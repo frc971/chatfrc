@@ -19,7 +19,6 @@ const questions = [
 	'Who is the lead mentor of FRC971',
 	'What is Scouting?',
 	'Does frc971 use postman?',
-	'Who is the lead mentor of frc971',
 	'How can I install pycharm on the frc971 build server?',
 
 	'What is the Chaiman Award?',
