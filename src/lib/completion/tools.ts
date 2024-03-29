@@ -36,13 +36,6 @@ function getTools(
 					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
 				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				if (do_summaryBot) {
-					const resopnse = await summaryBot.invoke(prompt);
-					if (verbose) {
-						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
-					}
-					return await summaryBot.invoke(prompt);
-				}
 				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}
@@ -67,13 +60,7 @@ function getTools(
 					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
 				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				if (do_summaryBot) {
-					const resopnse = await summaryBot.invoke(prompt);
-					if (verbose) {
-						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
-					}
-					return await summaryBot.invoke(prompt);
-				}
+				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}
 		}),
@@ -98,13 +85,6 @@ function getTools(
 					console.log(colors.fg.magenta, 'Context: ' + strResponse + '\n', colors.style.reset);
 				}
 				const prompt = SUMMARY.replace('{question}', query).replace('{text}', strResponse);
-				if (do_summaryBot) {
-					const resopnse = await summaryBot.invoke(prompt);
-					if (verbose) {
-						console.log(colors.fg.red, 'Summary: ' + resopnse + '\n', colors.style.reset);
-					}
-					return await summaryBot.invoke(prompt);
-				}
 				if (do_summaryBot) return await summaryBot.invoke(prompt);
 				return strResponse;
 			}

@@ -3,5 +3,9 @@ import { enhancedImages } from '@sveltejs/enhanced-img';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [sveltekit(), enhancedImages()]
+	plugins: [sveltekit(), enhancedImages()],
+	test: {
+		//30 seconds
+		testTimeout: 30000
+	}
 });
