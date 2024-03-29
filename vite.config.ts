@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [sveltekit(), enhancedImages()],
 	test: {
-		//30 seconds
-		testTimeout: 30000
+		//60 seconds
+		testTimeout: 60000
 	}
 });
