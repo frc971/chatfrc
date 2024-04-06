@@ -119,7 +119,6 @@ export class ChatbotCompletion {
 
 		Link to docs: https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 		`;
-		if (this.history.length != 0) this.history.pop();
 		const history =
 			this.history
 				.map((input: { type: string; content: string }) => {
@@ -216,7 +215,10 @@ export class ChatbotCompletion {
 				return 'Error';
 			}
 		}
-		if (this.use_history) this.history = history;
+		if (this.use_history) {
+			this.history = history;
+			if (this.history.length != 0) this.history.pop();
+		}
 		const result = await this.executor.invoke({ input: input });
 		if (this.generate_data)
 			fs.writeFile('data/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
