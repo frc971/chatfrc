@@ -1,130 +1,229 @@
-import { Document } from '@langchain/core/documents';
-
+//https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
 import { ChatOpenAI } from '@langchain/openai';
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { SystemMessage, BaseMessage, AIMessage, HumanMessage } from '@langchain/core/messages';
-
-import { ChatHistoryType, type ChatHistory } from '$lib/history';
-import { BytesOutputParser } from '@langchain/core/output_parsers';
-
+import { type AgentAction, type AgentFinish, type AgentStep } from '@langchain/core/agents';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { type InputValues } from '@langchain/core/memory';
+import { AIMessageChunk } from '@langchain/core/messages';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import { type ChatHistory } from '$lib/history';
+import { formatLogToString } from 'langchain/agents/format_scratchpad/log';
+import { RunnableSequence } from '@langchain/core/runnables';
+import { AgentExecutor } from 'langchain/agents';
+import { GPT3Prompt, GPT4Prompt, GPT4System } from './prompt';
+import { getTools } from './tools';
+import { colors } from '../colors';
+import fs from 'fs';
+import { OpenAI } from '@langchain/openai';
 
-import { default as SYSTEM_PROMPT_TEXT } from './system_prompt';
-
-const DEFAULT_MODEL = 'gpt-4-turbo-preview';
+const DEFAULT_MODEL = 'gpt-3.5-turbo';
 const DEFAULT_COLLECTION = 'default';
-
 export class ChatbotCompletion {
-	private model: ChatOpenAI;
 	private embeddings_model: OpenAIEmbeddings;
-
+	private executor: AgentExecutor | undefined;
+	private openai_api_key: string;
+	private model_name;
+	private verbose: boolean;
 	private qdrant_client: QdrantClient;
-	private qdrant_collection: string;
+	private collection_name: string;
+	private history: ChatHistory[];
+	private use_history: boolean; //controls if the model see the history of the chat or not
+	private generate_data: boolean;
+	private chain: string[]; //used for loging the react process; each element is either the chatbot's response or the prompt
+	private summaryBot: OpenAI;
+	private use_summarybot: boolean;
+	private model: ChatOpenAI;
 
 	constructor(
 		openai_api_key: string,
 		{
 			openai_model = DEFAULT_MODEL,
-			qdrant_collection = DEFAULT_COLLECTION
+			collection_name = DEFAULT_COLLECTION,
+			verbose = false,
+			do_history = true,
+			generate_data = false,
+			use_summarybot = true
 		}: {
 			openai_model?: string;
-			qdrant_collection?: string;
+			collection_name?: string;
+			verbose?: boolean;
+			do_history?: boolean;
+			generate_data?: boolean;
+			use_summarybot?: boolean;
 		}
 	) {
-		this.model = new ChatOpenAI({
-			openAIApiKey: openai_api_key,
-			temperature: 0.7,
-			streaming: true,
-			maxTokens: 500,
-			modelName: openai_model,
-			verbose: true
-		});
+		this.verbose = verbose;
+		this.model_name = openai_model;
+		this.openai_api_key = openai_api_key;
 
 		this.embeddings_model = new OpenAIEmbeddings({
 			openAIApiKey: openai_api_key,
-			modelName: 'text-embedding-3-small'
+			modelName: 'text-embedding-3-large'
 		});
-		this.qdrant_client = new QdrantClient({
-			url: 'http://' + (process.env.QDRANT_HOST ?? 'localhost') + ':6333'
+		this.summaryBot = new OpenAI({
+			openAIApiKey: openai_api_key,
+			modelName: 'gpt-3.5-turbo',
+			temperature: 0.0
 		});
-
-		this.qdrant_collection = qdrant_collection;
+		this.use_summarybot = use_summarybot;
+		this.qdrant_client = new QdrantClient({ host: 'localhost', port: 6333 });
+		this.collection_name = collection_name;
+		this.executor = undefined;
+		this.history = [];
+		this.use_history = do_history;
+		this.generate_data = generate_data;
+		this.chain = [];
+		if (openai_api_key == undefined) {
+			throw console.warn('OPENAI_API_KEY is undefined');
+		}
+		this.model = new ChatOpenAI({
+			openAIApiKey: this.openai_api_key,
+			modelName: this.model_name,
+			temperature: 0.0,
+			stop: ['\nObservation']
+		});
 	}
 
-	/*
-        We need to pass with_vector to qdrant to get our response
-    */
-	private async qdrant_similarity_search(query: string, k: number): Promise<Document[]> {
-		const query_embedding = await this.embeddings_model.embedQuery(query);
-		const qdrant_results = await this.qdrant_client.search(this.qdrant_collection, {
-			vector: query_embedding,
-			limit: k,
-			with_vector: true
-		});
-
-		console.log(qdrant_results);
-
+	public async setup() {
+		console.log(colors.fg.cyan, 'Model name: ' + this.model_name, colors.style.reset);
+		console.log('\n');
+		const tools = getTools(
+			this.qdrant_client,
+			this.collection_name,
+			this.embeddings_model,
+			this.summaryBot,
+			this.use_summarybot,
+			this.verbose
+		);
+		const runnable = RunnableSequence.from([
+			{
+				input: (values: InputValues) => {
+					return values.input;
+				},
+				intermediate_steps: (values: InputValues) => {
+					return values.steps;
+				}
+			},
+			this.promptBuilder.bind(this),
+			this.model,
+			this.customOutputParser.bind(this)
+		]);
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return qdrant_results.map((result: any) => {
-			return new Document({
-				pageContent: result.payload.pageContent,
-				metadata: result.payload.metadata
-			});
-		});
+		const executor = new AgentExecutor({ agent: runnable as any, tools: tools as any });
+		this.executor = executor;
 	}
+	private async promptBuilder(values: InputValues) {
+		`
+		Takes in InputValues, which consists of the model's intermedediate steps which includes 
+		the output of tools and format it into the prompt for the model. 
 
-	private async get_vector_response(query: string): Promise<string[]> {
-		console.log('Retrieving vector response from qdrant...');
-
-		const vector_response = await this.qdrant_similarity_search(query, 2);
-
-		console.log(vector_response);
-
-		console.log('Vector response retreived');
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return vector_response.map((document: Document<Record<string, any>>) => {
-			return document.pageContent;
-		});
+		Link to docs: https://js.langchain.com/docs/modules/agents/how_to/custom_llm_agent
+		`;
+		const history =
+			this.history
+				.map((input: { type: string; content: string }) => {
+					return input.type + ': ' + input.content;
+				})
+				.join('\n') + '\n';
+		const tools = getTools(
+			this.qdrant_client,
+			this.collection_name,
+			this.embeddings_model,
+			this.summaryBot,
+			this.use_summarybot,
+			this.verbose
+		); //to do seperate function for this
+		const intermediate_steps = values.intermediate_steps
+			? (values.intermediate_steps as Array<AgentStep>)
+			: [];
+		const agentScratchpad = formatLogToString(intermediate_steps);
+		let toolString = '';
+		let toolNames = '';
+		for (let i = 0; i < tools.length; i++) {
+			toolString += '\n' + tools[i].name + ': ' + tools[i].description;
+			toolNames += tools[i].name + ', ';
+		}
+		toolNames = toolNames.slice(0, -1);
+		toolNames = toolNames.slice(0, -1);
+		toolString += '\n\n';
+		let template = '';
+		let system = GPT4System;
+		system = system.replace('{tool_names}', toolNames);
+		system = system.replace('{tools}', toolString);
+		// console.log(system)
+		if (this.model_name == 'gpt-4') {
+			template = GPT4Prompt;
+		} else {
+			template = GPT3Prompt;
+		}
+		template = template.replace('{input}', values.input);
+		template = template.replace('{tool_names}', toolNames);
+		template = template.replace('{tools}', toolString);
+		template = template.replace('{history}', history);
+		template = template.replace('{scratchpad}', agentScratchpad);
+		if (this.verbose) {
+			console.log(colors.fg.white, 'Time: ' + new Date(), colors.style.reset);
+			console.log(colors.fg.green, 'Model prompt: ', colors.style.reset);
+			console.log(colors.fg.blue, template, colors.style.reset);
+			console.log('\n');
+		}
+		this.chain.push(JSON.stringify({ user: template }));
+		const output = [new HumanMessage(template)];
+		if (this.model_name == 'gpt-4') output.push(new SystemMessage(system));
+		return output;
 	}
-
-	private generate_history(history: ChatHistory[]): BaseMessage[] {
-		return history.map((message: { content: string; type: ChatHistoryType }) => {
-			if (message.type == ChatHistoryType.AI) {
-				return new AIMessage({ content: message.content });
-			} else {
-				return new HumanMessage({ content: message.content });
+	private customOutputParser(text: AIMessageChunk): AgentAction | AgentFinish {
+		const content = text.lc_kwargs.content;
+		if (content.includes('Final Answer:')) {
+			if (this.verbose) {
+				console.log(colors.fg.red, 'Model response: ', colors.style.reset);
+				console.log(colors.fg.yellow, content, colors.style.reset);
 			}
-		});
+			this.chain.push(JSON.stringify({ chatbot: content }));
+			const parts = content.split('Final Answer:');
+			const input = parts[parts.length - 1].trim();
+			const finalAnswers = { output: input };
+			return { log: content, returnValues: finalAnswers };
+		}
+		const match = /Action: (.*)\nAction Input: (.*)/s.exec(content);
+		if (match == null) {
+			this.chain.push(JSON.stringify({ chatbot: content }));
+			console.warn('Could not parse output');
+			console.warn(content);
+			const finalAnswers = { output: content };
+			return { log: content, returnValues: finalAnswers };
+		}
+		if (this.verbose) {
+			console.log(colors.fg.red, 'Model response: ', colors.style.reset);
+			console.log(colors.fg.yellow, content, colors.style.reset);
+		}
+		this.chain.push(JSON.stringify({ chatbot: content }));
+		return {
+			tool: match[1].trim(),
+			toolInput: match[2].trim().replace(/^"+|"+$/g, ''),
+			log: content
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public async query(history: ChatHistory[]): Promise<any> {
-		const vector_response = await this.get_vector_response(history[history.length - 1].content);
-
-		const context = vector_response.map((content: string) => {
-			return new SystemMessage({ content });
-		});
-
-		if (context.length == 0) {
-			context.push(
-				new SystemMessage({
-					content:
-						'You dont have data on this content, you may want to respond with "sorry I cannot answer that as I do not have enough information"'
-				})
-			);
+	public async query(history: ChatHistory[], input: any): Promise<any> {
+		if (this.executor == undefined) {
+			console.warn("ChatbotCompletion's setup was not called, calling setup");
+			this.setup();
+			if (this.executor == undefined) {
+				console.warn('setup failed');
+				return 'Error';
+			}
 		}
-
-		const chat_history = [
-			new SystemMessage({
-				content: SYSTEM_PROMPT_TEXT
-			}),
-			...context,
-			...this.generate_history(history)
-		];
-
-		// TODO(max): Add history pruning based on token length
-
-		return await this.model.pipe(new BytesOutputParser()).stream(chat_history);
+		if (this.use_history) {
+			this.history = history;
+			if (this.history.length != 0) this.history.pop();
+		}
+		const result = await this.executor.invoke({ input: input });
+		if (this.generate_data)
+			fs.writeFile('data/logs/' + input + '.jsonl', this.chain.join('\n'), (err) => {
+				if (err) console.warn('failed to write to logs'); //logs folder probably missing or wrong path
+			});
+		return result.output;
 	}
 }

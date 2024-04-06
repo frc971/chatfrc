@@ -5,14 +5,17 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
 
-def main():
-    client = QdrantClient("0.0.0.0", port=6333)
-    collection_name = 'default'
+def qdrant_upsert(path, collection_name, port=6333):
+    client = QdrantClient("0.0.0.0", port=port)
+    try:
+        client.delete_collection(collection_name=collection_name)
+    except:
+        pass
     client.create_collection(collection_name=collection_name,
                              vectors_config=models.VectorParams(
-                                 size=1536, distance=models.Distance.COSINE))
+                                 size=3072, distance=models.Distance.EUCLID))
 
-    data = np.load('data.npy', allow_pickle=True)
+    data = np.load(path, allow_pickle=True)
 
     for i, item in enumerate(data):
         print('\r',
@@ -31,6 +34,12 @@ def main():
                                              },
                                              vector=item['vector'])
                       ])
+
+
+def main():
+    qdrant_upsert('../data/documents/FRC971.npy', 'FRC971')
+    qdrant_upsert('../data/documents/FIRSTAwards.npy', 'FIRSTAwards')
+    qdrant_upsert('../data/documents/FIRSTAwards.npy', 'FIRSTDocuments')
 
 
 if __name__ == '__main__':
