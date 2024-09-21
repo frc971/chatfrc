@@ -12,3 +12,5 @@ unstructured
 unstructured[pdf]
 unstructured[rst]
 qdrant-client
+
+yapf

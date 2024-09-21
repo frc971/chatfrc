@@ -11,6 +11,7 @@
 
 	import { writable } from 'svelte/store';
 	import { setContext } from 'svelte';
+	import CookieConsentBanner from '$lib/components/CookieConsentBanner.svelte';
 
 	let history: ChatHistory[] = [];
 
@@ -95,6 +96,8 @@
 			<Icon src={Trash} class="w-6 h-6 text-gray-500 hover:text-gray-950" />
 		</button>
 	</form>
+
+	<CookieConsentBanner />
 </div>
 
 <style lang="postcss">
